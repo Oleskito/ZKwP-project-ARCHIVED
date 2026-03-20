@@ -384,3 +384,8 @@ class MedicalRecord(models.Model):
             raise ValidationError(
                 "Nie możesz przypisać wpisu jednocześnie do psa I szczeniaka"
             )
+
+    def __str__(self):
+        if self.dog:
+            return f"{self.dog}: {self.treatment_type},{self.result}"
+        return f"{self.puppy}: {self.treatment_type},{self.result}"
