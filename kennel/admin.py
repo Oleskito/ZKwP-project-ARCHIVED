@@ -1,6 +1,15 @@
 from django.contrib import admin
 
-from .models import Breed, Buyer, Dog, Litter, Puppy
+from .models import (
+    Breed,
+    Buyer,
+    Dog,
+    Litter,
+    MedicalRecord,
+    Puppy,
+    TreatmentResult,
+    TreatmentType,
+)
 
 
 @admin.register(Dog)
@@ -50,3 +59,24 @@ class BuyerAdmin(admin.ModelAdmin):
     list_display = ("first_name", "last_name", "email", "updated_at")
     list_filter = ["updated_at"]
     ordering = ("first_name", "last_name")
+
+
+@admin.register(TreatmentType)
+class TreatmentTypeAdmin(admin.ModelAdmin):
+    list_display = ["name"]
+
+
+@admin.register(TreatmentResult)
+class TreatmentResultAdmin(admin.ModelAdmin):
+    list_display = ("name", "treatment_type")
+    list_filter = ["treatment_type"]
+
+
+@admin.register(MedicalRecord)
+class MedicalResultAdmin(admin.ModelAdmin):
+    list_display = ("date", "get_animal", "treatment_type", "result")
+
+    def get_animal(self, obj):
+        return obj.dog if obj.dog else obj.puppy
+
+    get_animal.short_description = "Zwierzę"

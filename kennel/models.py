@@ -1,7 +1,9 @@
 import encrypted_model_fields.fields as encrypted_fields
 from django.conf import settings
+from django.core.exceptions import ValidationError
 from django.db import models
 from django_countries.fields import CountryField
+from smart_selects.db_fields import ChainedForeignKey
 
 
 class Dog(models.Model):
@@ -306,3 +308,79 @@ class Buyer(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
+
+
+class TreatmentType(models.Model):
+    name = models.CharField(max_length=100, verbose_name="Typ zabiegu / badania")
+
+    class Meta:
+        verbose_name = "Rodzaj zabiegu"
+        verbose_name_plural = "Rodzaje zabiegów"
+
+    def __str__(self):
+        return self.name
+
+
+class TreatmentResult(models.Model):
+    treatment_type = models.ForeignKey("kennel.TreatmentType", on_delete=models.PROTECT)
+    name = models.CharField(max_length=100, verbose_name="Wynik zabiegu / badania")
+
+    class Meta:
+        verbose_name = "Wynik zabiegu / badania"
+        verbose_name_plural = "Wyniki zabiegów / badań"
+
+    def __str__(self):
+        return f"{self.treatment_type.name}: {self.name}"
+
+
+class MedicalRecord(models.Model):
+    # Foreign Keys:
+    dog = models.ForeignKey(
+        "kennel.Dog",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Pies z naszych psów",
+    )
+    puppy = models.ForeignKey(
+        "kennel.Puppy",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Szczenię",
+    )
+    date = models.DateField(blank=True, null=True, verbose_name="Data badania")
+
+    treatment_type = models.ForeignKey("kennel.TreatmentType", on_delete=models.PROTECT)
+
+    result = ChainedForeignKey(
+        "kennel.TreatmentResult",
+        chained_field="treatment_type",
+        chained_model_field="treatment_type",
+        show_all=False,
+        auto_choose=True,
+        sort=True,
+    )
+    # PRZY DODAWANIU CHMURY TRZEBA DODAĆ TE POLE
+    # result_file = models.FileField(upload_to="medical/%Y/", null=True, blank=True)
+
+    class Meta:
+        verbose_name = "Wpis medyczny"
+        verbose_name_plural = "Wpisy medyczne"
+        constraints = [
+            models.CheckConstraint(  # Dodaj 'models.' tutaj
+                condition=(
+                    models.Q(dog__isnull=False, puppy__isnull=True)
+                    | models.Q(dog__isnull=True, puppy__isnull=False)
+                ),
+                name="medical_record_xor_animal",
+            )
+        ]
+
+    def clean(self):
+        if not self.dog and not self.puppy:
+            raise ValidationError("Musisz wybrać psa LUB szczeniaka.")
+        if self.dog and self.puppy:
+            raise ValidationError(
+                "Nie możesz przypisać wpisu jednocześnie do psa I szczeniaka"
+            )
