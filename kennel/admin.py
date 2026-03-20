@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Breed, Dog, Litter, Puppy
+from .models import Breed, Buyer, Dog, Litter, Puppy
 
 
 @admin.register(Dog)
@@ -37,8 +37,16 @@ class PuppyAdmin(admin.ModelAdmin):
     list_display = ("name", "chip_number", "get_birth_date", "status")
     list_filter = ("gender", "status")
     search_fields = ("name", "chip_number", "tattoo_number", "pkr_number")
+    ordering = ["name"]
 
     def get_birth_date(self, obj):
         if obj.litter:
             return obj.litter.birth_date
         return "-"
+
+
+@admin.register(Buyer)
+class BuyerAdmin(admin.ModelAdmin):
+    list_display = ("first_name", "last_name", "email", "updated_at")
+    list_filter = ["updated_at"]
+    ordering = ("first_name", "last_name")

@@ -1,7 +1,7 @@
+import encrypted_model_fields.fields as encrypted_fields
 from django.conf import settings
 from django.db import models
 from django_countries.fields import CountryField
-from django_cryptography.fields import encrypt
 
 
 class Dog(models.Model):
@@ -279,12 +279,11 @@ class Buyer(models.Model):
     email = models.EmailField(
         max_length=50, blank=True, verbose_name="Adres email kupującego"
     )
-    id_number = encrypt(
-        models.CharField(
-            max_length=25,
-            blank=True,
-            verbose_name="Numer PESEL / dokumentu tożsamości kupującego",
-        )
+    id_number = encrypted_fields.EncryptedCharField(
+        max_length=25,
+        blank=True,
+        null=True,
+        verbose_name="Numer PESEL / dokumentu tożsamości kupującego",
     )
     address_line_one = models.CharField(
         max_length=80, blank=True, verbose_name="Ulica i numer domu"
@@ -298,7 +297,12 @@ class Buyer(models.Model):
         max_length=15, blank=True, verbose_name="Kod pocztowy"
     )
     country = CountryField(default="PL", verbose_name="Kraj")
-    created_at = models.DateField()
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data dodania do systemu"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Ostatnia aktualizacja"
+    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
