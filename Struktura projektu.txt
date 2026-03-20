@@ -1,0 +1,28 @@
+1. Zakres porjektu:
+Aplikacja webowa działająca jak dedykowany system operacyjny dla hodowców ZKwP. Narzędzie służy do ewidencji stada, pilnowania rygorystycznych wymogów regulaminowtch automatyzacji wypełniania formularzy i zarządzania dokumentacją miotów. Aplikacja skupia się w 100% na biurokracji i logice związku.
+
+2. Tech Stack:
+Backend: Python (FastAPI lub Django) - do logiki biznesowej, operacji na plkkach (generowanie nakłądek na szablony PDF) oraz algorytmów
+Baza danych: PostgreSQL (lub MySQL) - relacyjna baza danych
+Frontend: JavaScript (Np React lub Vue) + HTML/CSS. Konieczność responsywności
+
+3.MoSCoW
+Must Have:
+-Baza psów - ewidencja z polami: nr PKR, nr chipa, płeć, data urodzenia, status (reproduktor/suka hodowlana)
+Silnik walidacji: Twarda logika ostrzegająca. oparta na dacie urodzenia np: przekroczenie granicy 8 lat dla suki; min 15 moesoęcy do krycia (lub 12 w zależności od rasy)
+Generator Dokumentacji Miotu: Moduł nakładający dane z bazy danych na szablony PDF czyli karte krycia, karte miotu, potwierdzenie znakowania, protokół kontroli miotu
+Wymóg badań DNA: Pola wymuszające zaznaczenie wykonania obowiązkowego profilu DNA przed zaplanowaniem miotu oraz generator protokołu pobrania materiału do badań
+Moduł Wymogów rasowych: Narzucenie dodatkowych badań tylko dla konkretnych ras wytypowanych w załączniku nr 10
+
+Should Have:
+-Słownik ras: Słównik ras i umaszczeń ZKwP, wdrożony jako listy rozwijane - wyeliminuje to literówki i pomyłki przy wypełnianiu druków
+
+Could Have:
+Logika Współwłasności - możliwość przypisania psa do kilku osób ze wskazaniem głównego właściciela
+Kalkulator Inbredu
+Asysten Podatkowy
+
+Wont Have:
+Generator umów kupna-sprzedaży
+Komunikator z nabywcami/funkcje społecznościowe
+Zarządzanie wynikami i dyplomami z wystaaw

@@ -1,0 +1,94 @@
+Przydomek hodowlany - Nazwisko psów urodzonych w danej hodowli
+
+PKR - Polska Księga Rodowodowa (psy z pełnym pochodzeniem)
+KW - Księga Wstępna (psy o niepełnym pochodzeniu)
+
+Metryka - Wydawana przez hodowcę (akt urodzenia psa)
+Rodowód - Nabywca idzie z metryką do ZKwP i na jej podstawie wyrabia rodowód
+Miot - Wszystkie szczenięta urodzone przez sukę podczas jednego porodu. Max jeden miot w roku na sukę
+
+	Cykl życia hodowli:
+Etap 1: Uzyskanie uprawnień hodowlanych:
+Suka musi mieć minimum 15 miesięcy (lub 12 miesięcy w zależności od rasy), oraz musi zaliczyć 3 wystawy z odpowiednimi ocenami lub przegląd hodowlany
+BIUROKRACJA: dla wielu ras ZKwP naarzuca dodatkowe wymogi np prześwietlenie na dysplazję. Dodatkowo jest wymóg wyrobienia profilu DNA. Suka traci uprawnienia 31 grudnia w roku w którym kończy 8 lat. 
+
+Etap 2: Krycie (Zapłodnienie)
+Hodowca jedzie do reproduktora. Obowiązuje tu druk KARTA KRYCIA. Obydwie strony go podpisują.
+BIUROKRACJA: Wymagane zagraniczne poświadczenie krycia oraz kopia rodowodu reproduktora (jeśli za granicą). Właściciel reproduktora ma 14 dni na złożenie karty w oddziale
+
+Etap 3: Zgłoszenie miotu
+Gdy szczenięta się rodzą hodowca ma dokładnie 14 dni na zgłoszenie faktu kierownikowi sekcji w swoim oddziale ZKwP
+
+Etap 4: Znakowanie u weterynarza
+Lekarz wszczepia chipy, szczepi oraz odrobacza
+BIUROKRACJA: Lekarz musi wypełnić i podbić pieczątką POTWIEDZENIE ZNAKOWANIA SZCZENIĄT oraz wkleić kody kreskowe z chipów
+
+Etap 5: Przegląd miotu
+Między 6 a 12 tygodniem życia szczeniąt do hodowcy przyjeżdża komisja ZKwP i wypełniają PROTOKÓŁ KONTROLI MIOTU
+BIUROKRACJA: Jeśli hodowca spóźni się i przegląd odbędzie się po 12 tygodniu życia ma obowiązek wykonać na własny koszt badania DNA potwierdzające pochodzenie całego miotu
+
+Etap 6: Kompletowanie teczki i wydanie metryk
+Hodowca w biurze ZKwP oddaje całą papierologię czyli: karta krycia, wypełniona karta miotu, potwierdzenie znakowania szczeniąt, protoków kontroli miotu. 
+Szczenięta mogą zostać wydane nowym właścicielom najwcześniej po ukończeniu 7 tygodnia życia
+
+Etap 7: Urząd Skarbowy i Weterynaria (Poza ZKwP)
+BIUROKRACJA: Każdego roku najpóźniej do 20 stycznia hodowca musi złożyć w US PIT-6
+
+
+Jak to wygląda ze strony hodowcy:
+Krok 1: Rejestracja i pierwsze ustawienia hodowli
+Hodowca zakłada konto, w kreatorze podaje informacje takie jak imię, nazwisko, adres, oddział ZKwP, przydomek hodowlany.
+Te dane będą importowane do wszystkich plików pdf
+
+Krok 2: Uzupełnienie bazy psów
+Dodanie do systemu suk hodowlanych i reproduktorów
+Dla każdego psa: imię, płeć, data urodzenia, numer chipa, numer rodowodu (PKR), rasa, umaszczenie
+Odznaczenie informacji o badaniach DNA
+
+Krok 3: Zdarzenie Krycie
+Hodowca wybiera "zaplanuj krycie". Wybiera sukę i wybiera lub wpisuje dane reproduktora (jeśli to pies z innej hodowli)
+Po kliknięciu Generuj dokumenty system zwraca gotowy PDF o nazwie Karta Krycia
+
+Krok 4: Narodziny
+Gdy rodzą się szczenięta hodowca z aktywnych kryć klika zgłoś poród. Wpisuje datę oraz liczbę urodzonych psów i suk
+
+Krok 5: Znakowanie
+Hodowca dodaje szczenięta do systemu wpisując ich imiona (cały miot na tę samą literę alfabetu) i udaje się na chipowanie
+Po wybraniu "dokumenty do weterynarza" aplikacja generuje potwierdzenie znakowania szczeniąt. są tam dane hodowcy, rodziców, tabela z imionami. Resztę uzupełnia weterynarz.
+
+Krok 6: Przegląd miotu (finał biurokracji)
+Między 6 a 12 tygodniem komisja wykonuje przegląd
+Hodowca generuje dokumentację miotu czyli zestaw plikó karta miotu oraz protokół kontroli miotu
+
+Krok 7: Archiwizacja i Podatki
+Miot zostaje zamknięty i trafia do cyfrowego archiwum.
+Na koniec roku pojawia się przypomnienie o zgłoszeniu PIT-6. Aplikacja podsumowuje dane potrzebne do tego dokumentu
+
+
+
+Do każdego sczeniaka w miocie powinien być przypisany status nabywcy (brak lub zajęty oraz jego dane)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

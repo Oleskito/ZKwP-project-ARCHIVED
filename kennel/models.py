@@ -1,0 +1,304 @@
+from django.conf import settings
+from django.db import models
+from django_countries.fields import CountryField
+from django_cryptography.fields import encrypt
+
+
+class Dog(models.Model):
+    class Gender(models.TextChoices):
+        MALE = "male", "Samiec"
+        FEMALE = "female", "Samica"
+
+    class BreedingStatus(models.TextChoices):
+        IN_PREPARATION = "in_preparation", "W przygotowaniu (młodzież)"
+        ACTIVE = "active", "Aktywny hodowlanie"
+        INACTIVE = "inactive", "Nieaktywny hodowlanie"
+        SOLD = "sold", "Sprzedany"
+        DECEASED = "deceased", "Zmarły"
+
+    # Klucze obce:
+    father = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Ojciec",
+        related_name="father_of",
+    )
+    mother = models.ForeignKey(
+        "self",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Matka",
+        related_name="mother_of",
+    )
+    breed = models.ForeignKey(
+        "kennel.Breed",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Rasa psa",
+    )
+    breeder = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
+    )
+
+    name = models.CharField(
+        max_length=100,
+        verbose_name="Imię psa i przydomek hodowlany",
+    )
+    gender = models.CharField(
+        max_length=10,
+        blank=True,
+        choices=Gender.choices,
+        verbose_name="Płeć psa",
+    )
+    breeding_status = models.CharField(
+        max_length=30,
+        blank=True,
+        choices=BreedingStatus.choices,
+        verbose_name="Status hodowlany",
+    )
+    birth_date = models.DateField(
+        blank=True, null=True, verbose_name="Data urodzenia psa"
+    )
+    pkr_number = models.CharField(max_length=40, blank=True, verbose_name="Numer PKR")
+    branch_registration_number = models.CharField(
+        max_length=20, blank=True, verbose_name="Numer rejestracyjny oddziału"
+    )
+    country_of_registration = CountryField(default="PL", verbose_name="Kraj")
+    tests_results = models.JSONField(
+        default=dict, blank=True, verbose_name="Testy ojca"
+    )
+    chip_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Numer chipa"
+    )
+    tattoo_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Numer tatuażu"
+    )
+    color = models.CharField(max_length=45, blank=True, verbose_name="Umaszczenie")
+    is_archived = models.BooleanField(
+        default=False, verbose_name="Czy pies jest zarchiwizowany"
+    )
+
+    # DANE O WSPÓŁWŁAŚCICIELU
+    co_owner_first_name = models.CharField(
+        max_length=30, blank=True, verbose_name="Imię współwłaściciela"
+    )
+    co_owner_last_name = models.CharField(
+        max_length=30, blank=True, verbose_name="Nazwisko współwłaściciela"
+    )
+    co_owner_address_line_one = models.CharField(
+        max_length=80, blank=True, verbose_name="Ulica i nr domu współwłaściciela"
+    )
+    co_owner_address_line_two = models.CharField(
+        max_length=30, blank=True, verbose_name="Nr mieszkania"
+    )
+    co_owner_city = models.CharField(max_length=50, blank=True, verbose_name="Miasto")
+    co_owner_region = models.CharField(
+        max_length=50, blank=True, verbose_name="Województwo"
+    )
+    co_owner_postal_code = models.CharField(
+        max_length=15, blank=True, verbose_name="Kod pocztowy"
+    )
+    co_owner_country = CountryField(default="PL", verbose_name="Kraj")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["breeder", "chip_number"], name="unique_chip_per_breeder"
+            ),
+            models.UniqueConstraint(
+                fields=["breeder", "tattoo_number"], name="unique_tattoo_per_breeder"
+            ),
+        ]
+
+    def __str__(self):
+        if self.chip_number:
+            return f"{self.name} [{self.chip_number}]"
+        return self.name
+
+
+class Breed(models.Model):
+    name = models.CharField(max_length=80, verbose_name="Nazwa razy")
+    is_small_breed = models.BooleanField(default=False, verbose_name="Mała rasa")
+    required_tests = models.JSONField(
+        default=dict, blank=True, verbose_name="Wymagane testy"
+    )
+
+    def __str__(self):
+        return self.name
+
+
+class Litter(models.Model):
+    class Status(models.TextChoices):
+        PLANNED = "planed", "Planowany"
+        MATED = "mated", "Krycie wykonane"
+        EMPTY = "empty", "Brak ciąży"
+        BORN = "born", "Urodzony"
+        REPORTED = "reported", "Zgłoszony"
+        INSPECTED = "inspected", "Po przeglądzie"
+        ARCHIVED = "archived", "Zarchiwizowany"
+
+    # Foreign Keys:
+    breeder = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
+    )
+    mother = models.ForeignKey(
+        "kennel.Dog",
+        on_delete=models.CASCADE,
+        verbose_name="Matka",
+        related_name="litters_as_mother",
+    )
+    father = models.ForeignKey(
+        "kennel.Dog",
+        on_delete=models.CASCADE,
+        verbose_name="Ojciec",
+        related_name="litters_as_father",
+    )
+    breed = models.ForeignKey(
+        "kennel.Breed",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        verbose_name="Rasa psa",
+    )
+
+    mating_place = models.CharField(
+        max_length=100, blank=True, verbose_name="Miejsce krycia"
+    )
+    mating_date_start = models.DateField(
+        blank=True, null=True, verbose_name="Data początku krycia"
+    )
+    mating_date_end = models.DateField(
+        blank=True, null=True, verbose_name="Data końca krycia"
+    )
+    birth_date = models.DateField(
+        blank=True, null=True, verbose_name="Data narodzin szczeniąt"
+    )
+    males_count = models.IntegerField(
+        blank=True, null=True, verbose_name="Liczba samców"
+    )
+    females_count = models.IntegerField(
+        blank=True, null=True, verbose_name="Liczba samic"
+    )
+    deceased_count = models.IntegerField(
+        blank=True, null=True, verbose_name="Liczba zmarłych szczeniąt"
+    )
+    litter_letter = models.CharField(
+        max_length=10, blank=True, verbose_name="Litera miotu"
+    )
+    status = models.CharField(
+        max_length=20, blank=True, choices=Status.choices, verbose_name="Status miotu"
+    )
+    # wybierane opcjonalnie jeśli ojciec lub matka jest z innej hodowli:
+    father_data_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Dane o samcu i właścicielu spoza hodowli",
+    )
+    mother_data_snapshot = models.JSONField(
+        default=dict,
+        blank=True,
+        verbose_name="Dane o samicy i właścicielu spoza hodowli",
+    )
+
+
+class Puppy(models.Model):
+    class Gender(models.TextChoices):
+        MALE = "male", "Samiec"
+        FEMALE = "female", "Samica"
+
+    class Status(models.TextChoices):
+        AVAILABLE = "available", "dostępny"
+        RESERVED = "reserved", "zarezerwowany"
+        BOOKED = "booked", "Opłacony"
+        STAYING = "staying", "Zostaje w hodowli"
+        SOLD = "sold", "Wyjechał do nowego domu"
+        DECEASED = "deceased", "Zmarły"
+
+    # Foreign Keys:
+    breeder = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
+    )
+    litter = models.ForeignKey(
+        "kennel.Litter", on_delete=models.CASCADE, verbose_name="Miot szczeniaka"
+    )
+
+    name = models.CharField(max_length=100, verbose_name="Imię i przydomek szczeniaka")
+    color = models.CharField(max_length=45, blank=True, verbose_name="Umaszczenie")
+    gender = models.CharField(
+        max_length=10, choices=Gender.choices, verbose_name="Płeć"
+    )
+    chip_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Numer chipa"
+    )
+    tattoo_number = models.CharField(
+        max_length=20, blank=True, null=True, verbose_name="Numer tatuaża"
+    )
+    internal_id = models.CharField(
+        max_length=100,
+        blank=True,
+        verbose_name="Identyfikator wewnętrzny np. kolor obroży",
+    )
+    status = models.CharField(
+        max_length=50,
+        choices=Status.choices,
+        blank=True,
+        verbose_name="Status szczeniaka",
+    )
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["breeder", "chip_number"], name="puppy_unique_chip_per_breeder"
+            ),
+            models.UniqueConstraint(
+                fields=["breeder", "tattoo_number"],
+                name="puppy_unique_tattoo_per_breeder",
+            ),
+        ]
+
+    def __str__(self):
+        if self.chip_number:
+            return f"{self.name} [{self.chip_number}]"
+        return self.name
+
+
+class Buyer(models.Model):
+    # Foreign keys:
+    breeder = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
+    )
+    first_name = models.CharField(max_length=30, verbose_name="Imię kupującego")
+    last_name = models.CharField(max_length=30, verbose_name="Nazwisko kupującego")
+    phone_number = models.CharField(
+        max_length=18, blank=True, verbose_name="Numer telefonu kupującego"
+    )
+    email = models.EmailField(
+        max_length=50, blank=True, verbose_name="Adres email kupującego"
+    )
+    id_number = encrypt(
+        models.CharField(
+            max_length=25,
+            blank=True,
+            verbose_name="Numer PESEL / dokumentu tożsamości kupującego",
+        )
+    )
+    address_line_one = models.CharField(
+        max_length=80, blank=True, verbose_name="Ulica i numer domu"
+    )
+    address_line_two = models.CharField(
+        max_length=80, blank=True, verbose_name="Nr mieszkania"
+    )
+    city = models.CharField(max_length=50, blank=True, verbose_name="Miasto")
+    region = models.CharField(max_length=50, blank=True, verbose_name="Województwo")
+    postal_code = models.CharField(
+        max_length=15, blank=True, verbose_name="Kod pocztowy"
+    )
+    country = CountryField(default="PL", verbose_name="Kraj")
+    created_at = models.DateField()
+
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
