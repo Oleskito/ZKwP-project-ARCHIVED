@@ -4,3 +4,4 @@ __pycache__/
 db.sqllite3
 venv/
 .venv/
+DB_BACKUPS/

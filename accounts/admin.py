@@ -5,9 +5,13 @@ from .models import Breeder
 
 
 class BreederAdmin(UserAdmin):
-    list_display = ("username", "email", "kennel_name", "branch", "is_staff")
+    list_display = ("email", "first_name", "last_name", "kennel_name", "branch")
+    ordering = ("email", "first_name", "last_name")
+    search_fields = ("email", "first_name", "last_name")
     # Dodajemy Twoje nowe pola z models.py do panelu administratora
-    fieldsets = UserAdmin.fieldsets + (
+    fieldsets = (
+        (None, {"fields": ("email", "password")}),
+        ("Informacje osobiste", {"fields": ("first_name", "last_name")}),
         (
             "Dane Hodowli ZKwP",
             {"fields": ("kennel_name", "branch", "membership_number")},

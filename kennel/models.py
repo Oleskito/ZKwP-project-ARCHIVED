@@ -128,6 +128,9 @@ class Breed(models.Model):
     required_tests = models.JSONField(
         default=dict, blank=True, verbose_name="Wymagane testy"
     )
+    country_of_origin = models.CharField(
+        max_length=30, blank=True, verbose_name="Kraj pochodzenia"
+    )
 
     def __str__(self):
         return self.name
