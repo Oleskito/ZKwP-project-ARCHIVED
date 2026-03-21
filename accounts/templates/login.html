@@ -1,0 +1,10 @@
+<h2>Zaloguj się do Panelu Hodowcy</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Zaloguj się</button>
+</form>
+<p>Nie masz konta? <a href="{% url 'register' %}">Zarejestruj się tutaj!</a></p>
+
+<hr>

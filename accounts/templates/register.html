@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Register</title>
+</head>
+<body>
+  <h2>Dołącz do hodowców!</h2>
+  <p>Wypełnij poniższy formularz, aby założyć konto</p>
+
+  <form method="post">
+    {% csrf_token %} {{form.as_p}}
+
+    <button type="submit">Zarejestruj się</button>
+  </form>
+  <hr>
+  <p>Masz już konto? <a href="{% url 'login' %}">Zaloguj się tutaj</a></p>
+</body>
+</html>

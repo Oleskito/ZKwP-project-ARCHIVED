@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+</head>
+<body>
+  <h1>Witaj na stronie głównej swojego profilu</h1>
+  <p>Zalogowany jako: {{user.first_name}} {{user.last_name}}</p>
+
+  <form action="{% url 'logout' %}" method="post">
+        {% csrf_token %}
+    <button type="submit"> Wyloguj się</button>
+  </form>
+</body>
+</html>
