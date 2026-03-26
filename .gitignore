@@ -5,9 +5,11 @@ db.sqllite3
 venv/
 .venv/
 DB_BACKUPS/
+./.idea
 
 #tailwind i podobne
 tailwindcss.exe
 node_modules/
 package.json
 package-lock.json
+
