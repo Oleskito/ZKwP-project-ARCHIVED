@@ -31,6 +31,7 @@ class DogAdmin(admin.ModelAdmin):
 class BreedAdmin(admin.ModelAdmin):
     list_display = ("name", "is_small_breed", "required_tests")
     list_filter = ("is_small_breed", "required_tests")
+    search_fields = ("name", "required_tests")
     ordering = ["name"]
 
 

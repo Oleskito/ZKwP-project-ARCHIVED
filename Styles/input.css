@@ -1,5 +1,25 @@
 @import "tailwindcss";
+
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 @theme {
   --font-sans: 'Poppins', sans-serif;
+}
+
+@layer base {
+    /* Nasz customowy, fioletowy scrollbar */
+    ::-webkit-scrollbar {
+        width: 10px;
+    }
+    ::-webkit-scrollbar-track {
+        background: #f9fafb;
+    }
+    ::-webkit-scrollbar-thumb {
+        background: #818cf8;
+        border-radius: 8px;
+        border: 2px solid #f9fafb;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background: #4f46e5;
+    }
 }
