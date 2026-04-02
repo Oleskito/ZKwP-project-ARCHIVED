@@ -3,7 +3,7 @@
 {% block content %}
 <div class="flex min-h-screen flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 bg-gray-50">
 
-    <div class="sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="sm:mx-auto sm:w-full sm:max-w-lg">
         <h2 class="mt-6 text-center text-xl font-black tracking-tight text-indigo-600 uppercase">Logowanie</h2>
         <h2 class="mt-6 text-center text-3xl font-black tracking-tight text-gray-900 uppercase">Panel Hodowcy</h2>
         <p class="mt-2 text-center text-lg text-gray-800">
@@ -11,15 +11,27 @@
         </p>
     </div>
 
-    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+    <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-lg">
         <div class="bg-white py-10 px-6 shadow-xl border border-gray-100 rounded-2xl sm:px-10">
 
             {% if form.errors or messages %}
-                <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200">
-                    <p class="text-sm font-bold text-red-700 text-center">
-                        Błędny adres e-mail lub hasło. Spróbuj ponownie.
-                    </p>
-                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="mb-6 p-4 rounded-xl border {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700{% else %}bg-red-50 border-red-200 text-red-700{% endif %}">
+                            <p class="text-sm font-bold text-center">
+                                {{ message }}
+                            </p>
+                        </div>
+                    {% endfor %}
+                {% endif %}
+
+                {% if form.errors and not messages %}
+                    <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700">
+                        <p class="text-sm font-bold text-center">
+                            Błędny adres e-mail lub hasło. Spróbuj ponownie.
+                        </p>
+                    </div>
+                {% endif %}
             {% endif %}
 
             <form class="space-y-6" action="{% url 'login' %}" method="POST" autocomplete="off">
@@ -30,7 +42,7 @@
                     <div class="mt-2">
                         <input id="username" name="username" type="email" autocomplete="email" required
                                class="block w-full appearance-none rounded-xl border border-gray-300 px-4 py-2.5 text-base text-gray-900 shadow-sm focus:border-indigo-600 focus:ring-indigo-600 transition-all placeholder:text-gray-400"
-                               placeholder="przyklad@hodowla.pl">
+                               placeholder="przykład@przykład.pl">
                     </div>
                 </div>
 
@@ -57,7 +69,7 @@
                 </div>
 
                 <div class="flex justify-center mt-2">
-                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACzn_QioaQA5_Mxn" data-theme="light" data-language="pl"></div>
+                    <div class="cf-turnstile" data-sitekey="0x4AAAAAACzn_QioaQA5_Mxn" data-theme="light" data-language="pl" ></div>
                 </div>
                 <div class="pt-2">
                     <button type="submit"

@@ -1,14 +1,50 @@
-from django.contrib.auth.forms import UserChangeForm, UserCreationForm
+from django.contrib.auth.forms import UserChangeForm
 from django import forms
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from django.contrib.auth.password_validation import validate_password  # Nowy import!
 from .models import Breeder
 
-class BreederRegistrationForm(UserCreationForm):
-    """
-    Formularz przeznaczony do bezpiecznej rejestracji hodowców na stronie.
-    """
+class BreederRegistrationForm(forms.ModelForm):
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': '********'}),
+        label="Hasło"
+    )
+    password_confirm = forms.CharField(
+        widget=forms.PasswordInput(attrs={'placeholder': '********'}),
+        label="Powtórz hasło"
+    )
+
     class Meta:
-        model = Breeder
+        model = get_user_model()
         fields = ("email", "first_name", "last_name")
+
+    def clean(self):
+        cleaned_data = super().clean()
+        password = cleaned_data.get("password")
+        password_confirm = cleaned_data.get("password_confirm")
+
+        if password and password_confirm:
+            if password != password_confirm:
+                raise ValidationError("Hasła nie są identyczne!")
+            else:
+                # Jeśli są identyczne, sprawdzamy ich siłę (Fort Knox!)
+                validate_password(password)
+
+        return cleaned_data
+
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if get_user_model().objects.filter(email__iexact=email).exists():
+            raise ValidationError("Konto o podanym adresie e-mail już istnieje.")
+        return email
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data["password"])  # Szyfrowanie
+        if commit:
+            user.save()
+        return user
 
 # ZMIANA: Dziedziczymy po prostym ModelForm
 class BreederCreationForm(forms.ModelForm):
