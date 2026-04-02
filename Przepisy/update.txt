@@ -1,3 +1,18 @@
+#TODO
+login.html:
+-Certyfikat SSL (HTTPS)
+-Zabezpieczenie przed brute-force
+-bezpieczne ciasteczka (session cookie secure oraz csrf cookie secure)
+-przycisk zapamiętaj mnie ma działać
+-Odzyskiwanie hasła
+
+
+
+
+
+
+
+
 Jak mogą wyglądać plany subskrybcyjne?
 legenda:
 Limit psów operacyjnych - jest to limit unikatowych psów które mają status aktywny hodowlanie lub w przygotowaniu
