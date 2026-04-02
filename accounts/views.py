@@ -8,6 +8,9 @@ from .forms import BreederRegistrationForm
 def home_view(request):
     return render(request, "home.html")
 
+def price_list_view(request):
+    return render(request, "price_list.html")
+
 
 def register_view(request):
     if request.method == "POST":

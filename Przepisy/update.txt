@@ -1,28 +1,48 @@
-NA CZYM SKOŃCZYŁEM:
--Budowa modelu Breeders, Dogs, Breeds
--Dodanie kilku psów dla testu
+Jak mogą wyglądać plany subskrybcyjne?
+legenda:
+Limit psów operacyjnych - jest to limit unikatowych psów które mają status aktywny hodowlanie lub w przygotowaniu
 
-TODO:
-Pozostale modele i panele admina
-Po zbudowaniu bazy danych przetestować sysetem:
--Dodajesz pierwszego użytkownika (Hodowcę).
--Dodajesz mu dwa psy.
--Tworzysz z nich miot.
+limit psów archiwalnych - jest to limit psów archiwalnych czyli mających status nieaktywny hodowlanie, sprzedany, zmarły. Dla tych psów nie można dodawać nowych dokumentów takich jak badania oraz generować dokumentów z tymi psami.
 
-NASTĘPNIE:
-Krok 3: Metoda "Pionowych Plasterków" (Vertical Slicing) - KLUCZ DO SUKCESU
-Przy tak dużym projekcie nie buduj od razu całego backendu (wszystkich widoków i logiki), a potem całego frontendu. To prosta droga do frustracji. Dziel aplikację na "pionowe plasterki" (czyli funkcjonalności od bazy aż po interfejs użytkownika).
+Gdy pies zostanie dodany do archiwalnych - może zostać dodany spowrotem za 6 miesięcy.
 
-Zamiast robić wszystko naraz, pracuj tak:
+Limit miotów to po prostu limit ile miotów może dodać użykownik w jednym roku subskrybcyjnym
 
-Plasterek 1: Autoryzacja. Robisz widoki logowania, rejestracji i resetu hasła (Backend). Potem robisz do nich ładny wygląd w HTML/Tailwind/Bootstrap (Frontend). Gotowe? Odhaczasz i idziesz dalej.
 
-Plasterek 2: Zarządzanie Psami. Piszesz logikę w Pythonie do dodawania, edycji i usuwania dorosłych psów. Robisz do tego frontendową tabelkę i formularz na stronie. Hodowca może już wgrać psa.
+1.Start
+Limit psów operacyjnych: 5
+limit psów archiwalnych: 50
+Limit miotów: 2
+Cena miesięczna: 49zł
+cena roczna: 490zł
+Generator PiT:
+-płatność roczna - dostęp natychmiastowy
+-płatność miesięczna - dostęp po 6 miesiącach
 
-Plasterek 3: Mioty i Szczenięta. Logika łączenia rodziców + widok formularza miotu na frontendzie.
 
-Plasterek 4: Generowanie PDF. Piszesz skrypt, który bierze dane z bazy i wypluwa Zgłoszenie Miotu. Dodajesz na frontendzie przycisk "Pobierz PDF".
+2.Pro
+Limit psów operacyjnych: 12
+limit psów archiwalnych: 500
+Limit miotów: 6
+Cena miesięczna: 89zł
+cena roczna: 890zł
+Generator PiT:
+-płatność roczna - dostęp natychmiastowy
+-płatność miesięczna - dostęp po 4 miesiącach
 
-Plasterek 5: Subskrypcje i Płatności. Na samym końcu, jak masz już działający produkt, dopinasz bramkę płatności.
 
-Dzięki takiemu podejściu po 2-3 tygodniach masz już "działający kawałek" aplikacji, który możesz komuś pokazać. To niesamowicie motywuje do dalszej pracy.
+
+3.VIP
+Limit psów operacyjnych: bez limitu
+limit psów archiwalnych: bez limitu
+Limit miotów: bez limitu
+Cena miesięczna: 169zł
+cena roczna: 1690zł
+Generator PiT:
+-płatność roczna - dostęp natychmiastowy
+-płatność miesięczna - dostęp po 3 miesiącach
+
+
+4*
+Gdy użytkownikowi skończy się miejsce na psy może dokupić 50 miejsc w bazie danych za kwotę 39zł
+

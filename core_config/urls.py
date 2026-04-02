@@ -32,4 +32,6 @@ urlpatterns = [
     path("", account_views.home_view, name="home"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("register/", account_views.register_view, name="register"),
+
+    path("price_list/", account_views.price_list_view, name="price_list"),
 ]
