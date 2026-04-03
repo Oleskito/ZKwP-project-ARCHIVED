@@ -8,6 +8,7 @@ DB_BACKUPS/
 ./.idea
 
 #tailwind i podobne
+/Styles/output.css
 tailwindcss.exe
 node_modules/
 package.json
