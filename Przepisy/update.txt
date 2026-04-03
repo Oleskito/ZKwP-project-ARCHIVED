@@ -7,6 +7,9 @@ login.html:
 -Odzyskiwanie hasła
 
 
+public_base.html:
+-po zalogowaniu uzytkownik w miejscu zaloguj się oraz zarejestruj się widzi wyloguj się oraz panel
+
 
 
 

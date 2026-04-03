@@ -8,7 +8,6 @@ from .forms import BreederRegistrationForm
 from .utils import verify_turnstile  # Importujemy naszą nową funkcję!
 
 
-@login_required
 def home_view(request):
     return render(request, "home.html")
 
@@ -30,7 +29,7 @@ def login_view(request):
         if form.is_valid():
             user = form.get_user()
             login(request, user)
-            return redirect("home")
+            return redirect("dashboard")
         else:
             messages.error(request, "Błędny adres e-mail lub hasło. Spróbuj ponownie.")
     else:
