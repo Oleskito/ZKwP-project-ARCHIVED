@@ -1,0 +1,77 @@
+{% extends 'kennel_panel_base.html' %}
+
+{% block title %}Psy - Przydomek{% endblock %}
+
+{% block content %}
+    <div class="mb-8">
+        <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Twoje Psy</h1>
+        
+        <div class="flex gap-4 border-b border-gray-200">
+            <button class="pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider">
+                Moje stado ({{ active_dogs.count }})
+            </button>
+            <button class="pb-3 text-sm font-bold text-gray-400 hover:text-gray-600 uppercase tracking-wider transition-colors">
+                Archiwum ({{ archived_dogs.count }})
+            </button>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-10">
+        
+        {% for dog in active_dogs %}
+        <details class="group border-b border-gray-100 last:border-none">
+            
+            <summary class="flex items-center justify-between p-4 sm:p-5 cursor-pointer list-none hover:bg-gray-50 transition-colors">
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-lg shrink-0">
+                        {{ dog.name|first|upper }}
+                    </div>
+                    <div>
+                        <p class="text-base font-black text-gray-900">{{ dog.name }}</p>
+                        <p class="text-xs font-medium text-gray-500">{{ dog.get_gender_display }} • {{ dog.get_breeding_status_display }}</p>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-4">
+                    <span class="hidden sm:inline-block text-xs font-bold text-gray-600 bg-gray-100 px-3 py-1 rounded-lg">
+                        Chip: {{ dog.chip_number|default:"Brak" }}
+                    </span>
+                    <svg class="w-5 h-5 text-gray-400 group-open:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                </div>
+            </summary>
+            
+            <div class="p-5 bg-gray-50/50 border-t border-gray-100 text-sm">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Identyfikacja</p>
+                        <p class="font-medium text-gray-900 text-xs mb-1">PKR: <span class="text-gray-600">{{ dog.pkr_number|default:"-" }}</span></p>
+                        <p class="font-medium text-gray-900 text-xs mb-1">Tatuaż: <span class="text-gray-600">{{ dog.tattoo_number|default:"-" }}</span></p>
+                        <p class="font-medium text-gray-900 text-xs">Maść: <span class="text-gray-600">{{ dog.color|default:"-" }}</span></p>
+                    </div>
+
+                    <div>
+                        <p class="text-[10px] font-black text-gray-400 uppercase tracking-wider mb-2">Pochodzenie</p>
+                        <p class="font-medium text-gray-900 text-xs mb-1">Ojciec: <span class="text-indigo-600">{{ dog.father.name|default:"Nieznany" }}</span></p>
+                        <p class="font-medium text-gray-900 text-xs">Matka: <span class="text-indigo-600">{{ dog.mother.name|default:"Nieznana" }}</span></p>
+                    </div>
+
+                    <div class="flex items-end lg:justify-end">
+                        <a href="#" class="inline-flex items-center gap-2 text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 px-4 py-2.5 rounded-xl transition-colors uppercase tracking-wide">
+                            Pełny profil
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </details>
+        {% empty %}
+            <div class="p-8 text-center">
+                <p class="text-gray-500 font-medium">Brak psów w stadzie. Dodaj swojego pierwszego psa!</p>
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}

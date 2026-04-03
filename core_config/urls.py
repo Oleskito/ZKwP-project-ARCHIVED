@@ -38,4 +38,5 @@ urlpatterns = [
     path("price_list/", account_views.price_list_view, name="price_list"),
 
     path("dashboard/", kennel_views.dashboard_view, name="dashboard"),
+    path("dashboard/dog/", kennel_views.dashboard_dog_view, name="dashboard_dog"),
 ]

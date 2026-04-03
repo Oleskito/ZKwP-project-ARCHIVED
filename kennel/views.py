@@ -20,3 +20,30 @@ def dashboard_view(request):
        "expected_litters_count": expected_litters_count,
                }
     return render(request, "dashboard.html", context)
+
+@login_required
+def dashboard_dog_view(request):
+    breeder = request.user
+
+    # 1. Moje stado (Psy aktywne i w przygotowaniu, nie zarchiwizowane)
+    active_dogs = Dog.objects.filter(
+        breeder=breeder,
+        is_archived=False,
+        breeding_status__in=[
+            Dog.BreedingStatus.ACTIVE,
+            Dog.BreedingStatus.IN_PREPARATION
+        ]
+    ).order_by('name')
+
+    # 2. Archiwum (Zarchiwizowane)
+    archived_dogs = Dog.objects.filter(
+        breeder=breeder,
+        is_archived=True
+    ).order_by('name')
+
+    context = {
+        'active_dogs': active_dogs,
+        'archived_dogs': archived_dogs,
+    }
+
+    return render(request, "dashboard_dog.html", context)

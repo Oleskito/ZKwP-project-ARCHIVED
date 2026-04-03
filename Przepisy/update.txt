@@ -10,6 +10,10 @@ login.html:
 public_base.html:
 -po zalogowaniu uzytkownik w miejscu zaloguj się oraz zarejestruj się widzi wyloguj się oraz panel
 
+dashboard.html:
+-dodanie działającej funkcji szybkich akcji
+-działająca oś czasu i warte uwagi
+
 
 
 
