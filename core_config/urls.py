@@ -41,4 +41,10 @@ urlpatterns = [
     path('dashboard/dog/add/', kennel_views.dog_add_view, name='dog_add'),
     path('dashboard/dog/<uuid:pk>/delete/', kennel_views.dog_delete_view, name='dog_delete'),
     path('dashboard/dog/<uuid:pk>/edit/', kennel_views.dog_edit_view, name='dog_edit'),
+
+    path("dashboard/litter/", kennel_views.dashboard_litter_view, name="dashboard_litter"),
+    path('dashboard/litter/add/', kennel_views.litter_add_view, name='litter_add'),
+
+    path('dashboard/litter/<uuid:pk>/delete/', kennel_views.litter_delete_view, name='litter_delete'),
+    path('dashboard/litter/<uuid:pk>/edit/', kennel_views.litter_edit_view, name='litter_edit'),
 ]

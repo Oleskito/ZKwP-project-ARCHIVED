@@ -1,0 +1,184 @@
+<details class="group border-b border-gray-100 last:border-none border-l-[3px] border-l-transparent open:border-l-indigo-400 open:shadow-lg open:shadow-indigo-100/50 open:bg-white open:my-3 open:rounded-xl relative open:z-10">
+
+    <summary class="flex items-center justify-between p-4 sm:p-5 cursor-pointer list-none hover:bg-gray-50 group-open:bg-indigo-50/40 transition-colors group-open:rounded-t-xl">
+        <span class="flex items-center gap-4">
+            <span class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-lg shrink-0 uppercase">
+                {{ litter.litter_letter|default:"?" }}
+            </span>
+            <span class="block">
+                <span class="text-base font-black text-gray-900 leading-tight block">Miot {{ litter.litter_letter|default:"Nieznana litera" }}</span>
+                <span class="text-sm font-medium text-gray-600 tracking-tighter block">
+                    {% if litter.birth_date %}
+                        Narodziny: {{ litter.birth_date|date:"d.m.Y" }}
+                    {% else %}
+                        Krycie: {{ litter.mating_date_start|date:"d.m.Y"|default:"Brak daty" }}
+                    {% endif %}
+                </span>
+            </span>
+        </span>
+
+        <span class="flex items-center gap-4">
+            <span class="hidden sm:inline-block text-xs font-black px-3 py-1 bg-gray-100 text-gray-600 rounded-lg uppercase tracking-wider">
+                {{ litter.get_status_display }}
+            </span>
+            <span class="w-8 h-8 flex items-center justify-center rounded-full group-open:rotate-180 transition-transform bg-white border border-gray-200 text-gray-400 group-hover:text-indigo-500 shadow-sm">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </span>
+        </span>
+    </summary>
+
+    <div class="px-4 sm:px-8 pb-6 pt-4 bg-white group-open:rounded-b-xl border-t border-gray-50">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div>
+                <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">Rodzice i Krycie</h4>
+                <div class="space-y-2 text-sm">
+
+                    <div class="flex items-start justify-between border-b border-gray-50 pb-2">
+                        <span class="text-gray-500 font-medium shrink-0 mr-4 mt-0.5">Matka:</span>
+                        <div class="text-right flex flex-col items-end">
+                            {% if litter.mother %}
+                                <span class="font-bold text-gray-900">{{ litter.mother.name }}</span>
+                            {% elif litter.mother_data_snapshot %}
+                                <span class="font-bold text-indigo-700">
+                                    {{ litter.mother_data_snapshot.name|default:litter.mother_data_snapshot }}
+                                </span>
+                                <span class="block text-[10px] text-gray-400 leading-tight mt-0.5 mb-1">
+                                    <i class="italic">spoza hodowli</i>
+                                </span>
+
+                                {% if litter.mother_data_snapshot.titles %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Tytuły:</span> {{ litter.mother_data_snapshot.titles }}</span>
+                                {% endif %}
+                                {% if litter.mother_data_snapshot.pkr_number %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">PKR:</span> {{ litter.mother_data_snapshot.pkr_number }}</span>
+                                {% endif %}
+                                {% if litter.mother_data_snapshot.chip %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Chip:</span> {{ litter.mother_data_snapshot.chip }}</span>
+                                {% endif %}
+                                {% if litter.mother_data_snapshot.color %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Maść:</span> {{ litter.mother_data_snapshot.color }}</span>
+                                {% endif %}
+                                {% if litter.mother_data_snapshot.health_tests %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Badania:</span> {{ litter.mother_data_snapshot.health_tests }}</span>
+                                {% endif %}
+                                {% if litter.mother_data_snapshot.owner %}
+                                    <span class="text-[11px] text-gray-600 mt-1"><span class="font-medium">Wł:</span> {{ litter.mother_data_snapshot.owner }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="font-bold text-gray-900">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-start justify-between border-b border-gray-50 pb-2 pt-1">
+                        <span class="text-gray-500 font-medium shrink-0 mr-4 mt-0.5">Ojciec:</span>
+                        <div class="text-right flex flex-col items-end">
+                            {% if litter.father %}
+                                <span class="font-bold text-gray-900">{{ litter.father.name }}</span>
+                            {% elif litter.father_data_snapshot %}
+                                <span class="font-bold text-indigo-700">
+                                    {{ litter.father_data_snapshot.name|default:litter.father_data_snapshot }}
+                                </span>
+                                <span class="block text-[10px] text-gray-400 leading-tight mt-0.5 mb-1">
+                                    <i class="italic">spoza hodowli</i>
+                                </span>
+
+                                {% if litter.father_data_snapshot.titles %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Tytuły:</span> {{ litter.father_data_snapshot.titles }}</span>
+                                {% endif %}
+                                {% if litter.father_data_snapshot.pkr_number %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">PKR:</span> {{ litter.father_data_snapshot.pkr_number }}</span>
+                                {% endif %}
+                                {% if litter.father_data_snapshot.chip %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Chip:</span> {{ litter.father_data_snapshot.chip }}</span>
+                                {% endif %}
+                                {% if litter.father_data_snapshot.color %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Maść:</span> {{ litter.father_data_snapshot.color }}</span>
+                                {% endif %}
+                                {% if litter.father_data_snapshot.health_tests %}
+                                    <span class="text-[11px] text-gray-600"><span class="font-medium">Badania:</span> {{ litter.father_data_snapshot.health_tests }}</span>
+                                {% endif %}
+                                {% if litter.father_data_snapshot.owner %}
+                                    <span class="text-[11px] text-gray-600 mt-1"><span class="font-medium">Wł:</span> {{ litter.father_data_snapshot.owner }}</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="font-bold text-gray-900">-</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between border-b border-gray-50 pb-1 pt-1">
+                        <span class="text-gray-500 font-medium">Rasa:</span>
+                        <span class="font-bold text-gray-900">{{ litter.breed.name|default:"-" }}</span>
+                    </div>
+
+                    <div class="flex items-start justify-between border-b border-gray-50 pb-1 mt-1 pt-1">
+                        <span class="text-gray-500 font-medium shrink-0 mr-4">Data krycia:</span>
+                        <span class="font-bold text-gray-900 text-right leading-tight">
+                            {% if litter.mating_date_start %}
+                                {{ litter.mating_date_start|date:"d.m.Y" }}
+                                {% if litter.mating_date_end and litter.mating_date_end != litter.mating_date_start %}
+                                    - {{ litter.mating_date_end|date:"d.m.Y" }}
+                                {% endif %}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <div class="flex items-start justify-between pb-1 mt-1 pt-1">
+                        <span class="text-gray-500 font-medium shrink-0 mr-4">Miejsce:</span>
+                        <span class="font-bold text-gray-900 text-right whitespace-normal break-words leading-tight">
+                            {{ litter.mating_place|default:"-" }}
+                        </span>
+                    </div>
+
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">Statystyki miotu</h4>
+                <div class="space-y-2 text-sm">
+                    <p class="flex items-center justify-between border-b border-gray-50 pb-1">
+                        <span class="text-gray-500 font-medium">Samców:</span>
+                        <span class="font-bold text-gray-900">{{ litter.males_count|default:"0" }}</span>
+                    </p>
+                    <p class="flex items-center justify-between border-b border-gray-50 pb-1">
+                        <span class="text-gray-500 font-medium">Samic:</span>
+                        <span class="font-bold text-gray-900">{{ litter.females_count|default:"0" }}</span>
+                    </p>
+                    <p class="flex items-center justify-between pb-1">
+                        <span class="text-gray-500 font-medium">Zmarłe:</span>
+                        <span class="font-bold text-red-600">{{ litter.deceased_count|default:"0" }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="lg:col-span-1">
+                <h4 class="text-[10px] font-black text-indigo-500 uppercase tracking-widest mb-3">Dokumenty Miotu</h4>
+                <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar pr-2">
+                    {% for doc in litter.documentrecord_set.all %}
+                        <div class="flex items-center justify-between p-2 bg-gray-50 rounded-lg border border-gray-100 group/doc hover:border-indigo-200 transition-colors">
+                            <span class="text-xs font-bold text-gray-700 truncate mr-2" title="{{ doc.document_name }}">
+                                {{ doc.document_name|default:"Nienazwany dokument" }}
+                            </span>
+                            <span class="shrink-0 text-[10px] text-gray-400 font-medium italic">Plik</span>
+                        </div>
+                    {% empty %}
+                        <div class="col-span-full text-sm text-gray-400 font-medium italic">Brak dokumentów miotu.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
+            <a href="{% url 'litter_delete' pk=litter.pk %}" class="text-xs font-black text-gray-600 hover:text-red-600 transition-colors uppercase tracking-widest">
+               Usuń
+            </a>
+            <a href="{% url 'litter_edit' pk=litter.pk %}" class="px-5 py-2.5 bg-indigo-50 text-indigo-700 hover:bg-indigo-600 hover:text-white rounded-xl text-xs font-black uppercase tracking-widest transition-colors">
+               Edytuj Miot
+            </a>
+        </div>
+    </div>
+</details>

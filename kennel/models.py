@@ -190,6 +190,7 @@ class Litter(models.Model):
         "kennel.Dog",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         verbose_name="Matka",
         related_name="litters_as_mother",
     )
@@ -197,6 +198,7 @@ class Litter(models.Model):
         "kennel.Dog",
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         verbose_name="Ojciec",
         related_name="litters_as_father",
     )
@@ -209,7 +211,7 @@ class Litter(models.Model):
     )
 
     mating_place = models.CharField(
-        max_length=100, blank=True, verbose_name="Miejsce krycia"
+        max_length=200, blank=True, verbose_name="Miejsce krycia"
     )
     mating_date_start = models.DateField(
         blank=True, null=True, verbose_name="Data początku krycia"
@@ -246,6 +248,22 @@ class Litter(models.Model):
         blank=True,
         verbose_name="Dane o samicy i właścicielu spoza hodowli",
     )
+
+    def clean(self):
+        super().clean()
+
+        # Ochrona przed podwójnym ojcem
+        if self.father and self.father_data_snapshot:
+            raise ValidationError("Miot nie może mieć jednocześnie ojca przypisanego z bazy i ojca zewnętrznego.")
+
+        # Ochrona przed podwójną matką
+        if self.mother and self.mother_data_snapshot:
+            raise ValidationError("Miot nie może mieć jednocześnie matki przypisanej z bazy i matki zewnętrznej.")
+
+    def save(self, *args, **kwargs):
+        # Uruchamiamy clean() przed każdym zapisem, nawet z kodu lub panelu admina
+        self.clean()
+        super().save(*args, **kwargs)
 
 
 class Puppy(models.Model):
