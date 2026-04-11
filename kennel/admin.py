@@ -9,6 +9,7 @@ from .models import (
     Puppy,
     TreatmentResult,
     TreatmentType,
+    DocumentRecord,
 )
 
 
@@ -17,6 +18,7 @@ class DogAdmin(admin.ModelAdmin):
     list_display = (
         "name",
         "breeder",
+        "origin_kennel",
         "gender",
         "breeding_status",
         "chip_number",
@@ -79,5 +81,19 @@ class MedicalResultAdmin(admin.ModelAdmin):
 
     def get_animal(self, obj):
         return obj.dog if obj.dog else obj.puppy
+
+    get_animal.short_description = "Zwierzę"
+
+@admin.register(DocumentRecord)
+class DocumentRecordAdmin(admin.ModelAdmin):
+    list_display = ("date", "get_animal", "category", "document_name")
+
+    def get_animal(self, obj):
+        if obj.dog:
+            return obj.dog
+        elif obj.puppy:
+            return obj.puppy
+        return obj.litter
+
 
     get_animal.short_description = "Zwierzę"

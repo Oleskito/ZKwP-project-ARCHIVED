@@ -16,6 +16,8 @@ dashboard.html:
 
 
 
+!Zmienić w każddej tabeli w modelach ID na UUID
+
 
 
 
@@ -29,6 +31,9 @@ limit psów archiwalnych - jest to limit psów archiwalnych czyli mających stat
 Gdy pies zostanie dodany do archiwalnych - może zostać dodany spowrotem za 6 miesięcy.
 
 Limit miotów to po prostu limit ile miotów może dodać użykownik w jednym roku subskrybcyjnym
+
+Modyfikacja psów/miotów/szczeniaków jest dozwolona przez 3 dni od dodania chyba że:
+Zostało ono użyte np w potomstwie
 
 
 1.Start

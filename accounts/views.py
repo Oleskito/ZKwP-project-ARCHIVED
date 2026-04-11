@@ -9,11 +9,11 @@ from .utils import verify_turnstile  # Importujemy naszą nową funkcję!
 
 
 def home_view(request):
-    return render(request, "home.html")
+    return render(request, "home_pages/home.html")
 
 
 def price_list_view(request):
-    return render(request, "price_list.html")
+    return render(request, "home_pages/price_list.html")
 
 
 def login_view(request):
@@ -22,7 +22,7 @@ def login_view(request):
         if not verify_turnstile(request):
             messages.error(request, "Weryfikacja bezpieczeństwa nie powiodła się, spróbuj ponownie.")
             form = AuthenticationForm()
-            return render(request, "login.html", {"form": form})
+            return render(request, "home_pages/login.html", {"form": form})
 
         # 2. STANDARDOWE LOGOWANIE
         form = AuthenticationForm(request, data=request.POST)
@@ -35,7 +35,7 @@ def login_view(request):
     else:
         form = AuthenticationForm()
 
-    return render(request, "login.html", {"form": form})
+    return render(request, "home_pages/login.html", {"form": form})
 
 
 def register_view(request):
@@ -44,7 +44,7 @@ def register_view(request):
         if not verify_turnstile(request):
             messages.error(request, "Proszę potwierdzić, że nie jesteś robotem.")
             form = BreederRegistrationForm(request.POST)
-            return render(request, "register.html", {"form": form})
+            return render(request, "home_pages/register.html", {"form": form})
 
         # 2. WALIDACJA FORMULARZA REJESTRACJI
         form = BreederRegistrationForm(request.POST)
@@ -57,4 +57,4 @@ def register_view(request):
     else:
         form = BreederRegistrationForm()
 
-    return render(request, "register.html", {"form": form})
+    return render(request, "home_pages/register.html", {"form": form})

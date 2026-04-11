@@ -17,7 +17,6 @@ Including another URLconf
 
 from django.contrib import admin
 from django.contrib.auth import views as auth_views
-from accounts import views
 
 from django.urls import include, path
 
@@ -29,7 +28,7 @@ urlpatterns = [
     path("chaining/", include("smart_selects.urls")),
     path(
         "login/",
-        views.login_view,
+        account_views.login_view,
         name="login",
     ),
     path("", account_views.home_view, name="home"),
@@ -39,4 +38,7 @@ urlpatterns = [
 
     path("dashboard/", kennel_views.dashboard_view, name="dashboard"),
     path("dashboard/dog/", kennel_views.dashboard_dog_view, name="dashboard_dog"),
+    path('dashboard/dog/add/', kennel_views.dog_add_view, name='dog_add'),
+    path('dashboard/dog/<uuid:pk>/delete/', kennel_views.dog_delete_view, name='dog_delete'),
+    path('dashboard/dog/<uuid:pk>/edit/', kennel_views.dog_edit_view, name='dog_edit'),
 ]

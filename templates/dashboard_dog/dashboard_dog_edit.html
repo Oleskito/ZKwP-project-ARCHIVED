@@ -1,0 +1,164 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Dodaj psa - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+
+    <div class="mb-6">
+        <h2 class="text-sm font-black tracking-widest text-indigo-600 uppercase">Zarządzanie stadem</h2>
+        <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase">Edytuj dane psa</h1>
+        <p class="text-sm text-gray-500 italic">Zmień dane rodowodowe lub identyfikacyjne zwierzęcia.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="dog-form" class="space-y-6">
+        {% csrf_token %}
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                Dane podstawowe
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div class="md:col-span-4">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.name.label }}</label>
+                    {{ form.name }}
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.gender.label }}</label>
+                    {{ form.gender }}
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.birth_date.label }}</label>
+                    {{ form.birth_date }}
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.breed.label }}</label>
+                    {{ form.breed }}
+                </div>
+                <div class="md:col-span-1">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.breeding_status.label }}</label>
+                    {{ form.breeding_status }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                Identyfikacja i Pochodzenie
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.chip_number.label }}</label>
+                    {{ form.chip_number }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.tattoo_number.label }}</label>
+                    {{ form.tattoo_number }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.pkr_number.label }}</label>
+                    {{ form.pkr_number }}
+                </div>
+
+                <div class="md:col-span-3 pt-2">
+                    <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-2">
+                        <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest">
+                            Hodowla pochodzenia psa
+                        </label>
+
+                        <label class="inline-flex items-center gap-3 px-4 py-2 bg-indigo-50 border border-indigo-100 rounded-xl cursor-pointer hover:bg-indigo-100 transition-all group">
+                            <input type="checkbox" id="from-my-kennel" class="h-5 w-5 rounded border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer">
+                            <span class="text-[10px] font-black text-indigo-700 uppercase tracking-widest">Z mojej hodowli</span>
+                        </label>
+                    </div>
+                    {{ form.origin_kennel }}
+                </div>
+
+                <div class="md:col-span-3 grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Ojciec (Imię i przydomek)</label>
+                        {{ form.father }}
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Matka (Imię i przydomek)</label>
+                        {{ form.mother }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                Współwłasność
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Imię</label>
+                    {{ form.co_owner_first_name }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Nazwisko</label>
+                    {{ form.co_owner_last_name }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Ulica i nr domu</label>
+                    {{ form.co_owner_address_line_one }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Nr mieszkania</label>
+                    {{ form.co_owner_address_line_two }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Miasto</label>
+                    {{ form.co_owner_city }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Kod pocztowy</label>
+                    {{ form.co_owner_postal_code }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Województwo</label>
+                    {{ form.co_owner_region }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">Kraj</label>
+                    {{ form.co_owner_country }}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-4 mb-10">
+            <a href="{% url 'dashboard_dog' %}" class="flex-1 flex justify-center rounded-xl bg-white border border-gray-200 py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+                Anuluj
+            </a>
+            <button type="submit" class="flex-1 flex justify-center rounded-xl bg-indigo-600 py-3 text-xs font-black text-white shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.01] uppercase tracking-widest">
+                Zapisz psa w stadzie
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    const checkbox = document.getElementById('from-my-kennel');
+    const originInput = document.querySelector('input[name="origin_kennel"]');
+    const myKennelName = "{{ user_kennel }}";
+
+    checkbox.addEventListener('change', function() {
+        if (this.checked) {
+            originInput.value = myKennelName;
+            originInput.readOnly = true;
+            // Klasy blokady: szare tło, wyszarzony tekst i kursor "zakaz"
+            originInput.classList.add('bg-gray-100', 'text-gray-400', 'cursor-not-allowed', 'border-gray-200');
+            originInput.classList.remove('bg-white');
+        } else {
+            originInput.value = '';
+            originInput.readOnly = false;
+            originInput.classList.remove('bg-gray-100', 'text-gray-400', 'cursor-not-allowed', 'border-gray-200');
+            originInput.classList.add('bg-white');
+        }
+    });
+</script>
+{% endblock %}

@@ -1,3 +1,5 @@
+import uuid
+
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 from django_countries.fields import CountryField
@@ -20,15 +22,19 @@ class BreederManager(BaseUserManager):
         extra_fields.setdefault("is_superuser", True)
         extra_fields.setdefault("is_active", True)
 
-        if extra_fields.get("is_staff") is not True:
+        if extra_fields.get("is_staff"):
             raise ValueError("Superuser must have is_staff=True.")
-        if extra_fields.get("is_superuser") is not True:
+        if extra_fields.get("is_superuser"):
             raise ValueError("Superuser must have is_superuser=True.")
 
         return self.create_user(email, password, **extra_fields)
 
 
 class Breeder(AbstractUser):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data rejestracji")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
+
     username = None
     email = models.EmailField(unique=True, verbose_name="Adres email")
 
@@ -61,7 +67,7 @@ class Breeder(AbstractUser):
 
     # płatności:
     subscription_valid_until = models.DateField(
-        blank=True, null=True, verbose_name="Subskrybcja aktywna do..."
+        blank=True, null=True, verbose_name="Subskrypcja aktywna do..."
     )
 
     current_plan = models.ForeignKey(
@@ -69,8 +75,13 @@ class Breeder(AbstractUser):
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        verbose_name="aktualny plan subskrybcji",
+        verbose_name="aktualny plan subskrypcji",
     )
+
+    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Nr telefonu")
+    is_verified = models.BooleanField(default = False, verbose_name = "Zweryfikowany")
+    tos_accepted_at = models.DateTimeField(null=True, blank=True, verbose_name="Data akceptacji regulaminu")
+
 
     def __str__(self):
         if self.kennel_name:

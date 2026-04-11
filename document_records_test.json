@@ -1,0 +1,58 @@
+[
+  {
+    "model": "kennel.documentrecord",
+    "pk": "a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d",
+    "fields": {
+      "dog": "90885e33-725d-53be-97c7-05c21dfcfbc0",
+      "puppy": null,
+      "litter": null,
+      "category": "pedigree",
+      "document_name": "Rodowód - Azor",
+      "date": "2024-01-15",
+      "created_at": "2026-04-11T14:30:00Z",
+      "updated_at": "2026-04-11T14:30:00Z"
+    }
+  },
+  {
+    "model": "kennel.documentrecord",
+    "pk": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e",
+    "fields": {
+      "dog": "9e023ca6-836e-5264-b6be-e4f0c766b931",
+      "puppy": null,
+      "litter": null,
+      "category": "certificate",
+      "document_name": "Certyfikat Zwycięzcy - Luna",
+      "date": "2026-04-06",
+      "created_at": "2026-04-11T14:32:00Z",
+      "updated_at": "2026-04-11T14:32:00Z"
+    }
+  },
+  {
+    "model": "kennel.documentrecord",
+    "pk": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f",
+    "fields": {
+      "dog": null,
+      "puppy": "3d12d453-6593-559d-926e-443b35f6f32e",
+      "litter": null,
+      "category": "contract",
+      "document_name": "Umowa sprzedaży - Dax",
+      "date": "2026-04-10",
+      "created_at": "2026-04-11T14:35:00Z",
+      "updated_at": "2026-04-11T14:35:00Z"
+    }
+  },
+  {
+    "model": "kennel.documentrecord",
+    "pk": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a",
+    "fields": {
+      "dog": null,
+      "puppy": null,
+      "litter": "2a98f1f7-54d1-556b-8012-70b7410884ef",
+      "category": "certificate",
+      "document_name": "Karta przeglądu miotu D",
+      "date": "2026-03-30",
+      "created_at": "2026-04-11T14:40:00Z",
+      "updated_at": "2026-04-11T14:40:00Z"
+    }
+  }
+]

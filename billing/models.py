@@ -1,11 +1,16 @@
 from django.conf import settings
 from django.db import models
+import uuid
 
 
 class SubscriptionPlan(models.Model):
-    name = models.CharField(max_length=60)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    duration_days = models.PositiveBigIntegerField()
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania pakietu")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
+
+    name = models.CharField(max_length=60, verbose_name="Nazwa planu")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cena")
+    duration_days = models.PositiveBigIntegerField(verbose_name="Czas trwania")
 
     # W przyszłości
     # max_litters_per_year = models.PositiveBigIntegerField()
@@ -21,6 +26,10 @@ class Payment(models.Model):
         FAILED = "failed", "Nieudana"
         CANCELLED = "cancelled", "Anulowana"
         REFUNDED = "refunded", "Zwrócona"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data utworzenia rekordu")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji rekordu")
 
     breeder = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -43,7 +52,7 @@ class Payment(models.Model):
     status = models.CharField(
         max_length=20,
         default="pending",
-        choices=Status.choices,
+        choices=Status.choices, #type: ignore
         verbose_name="Status płatności",
     )
 
