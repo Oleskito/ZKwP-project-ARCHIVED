@@ -17,8 +17,12 @@ dashboard.html:
 wszystkie dodawanie w dashboardach:
 walidacja limitów po dodaniu pakietów subskrypcyjnych
 
-!Zmienić w każddej tabeli w modelach ID na UUID
 
+#TODO
+Aktualizacja Accordion row dla miotów i szczeniąt (zmiana kolorów nagłówków)
+Dodanie podstrony dla dog i puppy gdzie będzie dokładna analiza wzrostu i wagi
+Dziennik rozwoju czyli podstrony measurements tak aby miały wykresy i wszystkie parametry rozpisane
+POPRAWIENIE WYSWIETLANIA SIĘ ZDJEC AWATAROWYCH
 
 
 

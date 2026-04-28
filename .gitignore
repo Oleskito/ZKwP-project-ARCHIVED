@@ -6,6 +6,7 @@ venv/
 .venv/
 DB_BACKUPS/
 ./.idea
+AGENTS.md
 
 #tailwind i podobne
 /Styles/output.css

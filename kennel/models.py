@@ -109,6 +109,13 @@ class Dog(models.Model):
     )
     co_owner_country = CountryField(default="PL", verbose_name="Kraj")
 
+    profile_picture = models.ImageField(
+        upload_to='dogs/profiles/',
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie profilowe"
+    )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -148,6 +155,18 @@ class Dog(models.Model):
             self.is_archived = False
 
         super().save(*args, **kwargs)
+
+    @property
+    def current_weight(self):
+        # Szukamy najnowszego pomiaru psa, który ma wpisaną wagę
+        latest_measurement = self.measurement_set.filter(weight__isnull=False).first()
+        return latest_measurement.weight if latest_measurement else None
+
+    @property
+    def current_height(self):
+        # Szukamy najnowszego pomiaru psa, który ma wpisany wzrost
+        latest_measurement = self.measurement_set.filter(height__isnull=False).first()
+        return latest_measurement.height if latest_measurement else None
 
 
 class Breed(models.Model):
@@ -248,6 +267,12 @@ class Litter(models.Model):
         blank=True,
         verbose_name="Dane o samicy i właścicielu spoza hodowli",
     )
+    cover_photo = models.ImageField(
+        upload_to='litters/covers/',
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie w tle / okładka"
+    )
 
     def clean(self):
         super().clean()
@@ -265,6 +290,13 @@ class Litter(models.Model):
         self.clean()
         super().save(*args, **kwargs)
 
+    def __str__(self):
+        if self.birth_date:
+            return f"Miot {self.litter_letter} ({self.birth_date})"
+        elif self.mating_date_start:
+            return f"Miot {self.litter_letter} ({self.mating_date_start})"
+        return f"Miot {self.litter_letter}, {self.get_status_display()}"
+
 
 class Puppy(models.Model):
     class Gender(models.TextChoices):
@@ -272,11 +304,11 @@ class Puppy(models.Model):
         FEMALE = "female", "Samica"
 
     class Status(models.TextChoices):
-        AVAILABLE = "available", "dostępny"
-        RESERVED = "reserved", "zarezerwowany"
+        AVAILABLE = "available", "Dostępny"
+        RESERVED = "reserved", "Zarezerwowany"
         BOOKED = "booked", "Opłacony"
         STAYING = "staying", "Zostaje w hodowli"
-        SOLD = "sold", "Wyjechał do nowego domu"
+        SOLD = "sold", "Sprzedany"
         DECEASED = "deceased", "Zmarły"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -289,6 +321,14 @@ class Puppy(models.Model):
     )
     litter = models.ForeignKey(
         "kennel.Litter", on_delete=models.CASCADE, verbose_name="Miot szczeniaka"
+    )
+    adult_dog_profile = models.OneToOneField(
+        'Dog',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='original_puppy',
+        help_text="Jeśli szczenię zostało w hodowli, tu znajduje się link do jego dorosłego profilu."
     )
 
     name = models.CharField(max_length=100, verbose_name="Imię i przydomek szczeniaka")
@@ -313,6 +353,13 @@ class Puppy(models.Model):
         blank=True,
         verbose_name="Status szczeniaka",
     )
+    profile_picture = models.ImageField(
+        upload_to='puppies/profiles/',
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie profilowe"
+    )
+
 
     class Meta:
         constraints = [
@@ -329,6 +376,16 @@ class Puppy(models.Model):
         if self.chip_number:
             return f"{self.name} [{self.chip_number}]"
         return self.name
+
+    @property
+    def current_weight(self):
+        latest_measurement = self.measurement_set.filter(weight__isnull=False).first()
+        return latest_measurement.weight if latest_measurement else None
+
+    @property
+    def current_height(self):
+        latest_measurement = self.measurement_set.filter(height__isnull=False).first()
+        return latest_measurement.height if latest_measurement else None
 
 
 class Buyer(models.Model):
@@ -541,3 +598,74 @@ class DocumentRecord(models.Model):
         if self.puppy:
             return f"{self.puppy}: {self.category} - {self.document_name}"
         return f"{self.litter}: {self.category} - {self.document_name}"
+
+
+class Measurement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    date = models.DateField(blank=False, null=False, verbose_name="Data pomiaru")
+
+    # Powiązania (dokładnie tak jak miałeś)
+    dog = models.ForeignKey(
+        "kennel.Dog",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Pies dorosły",
+    )
+    puppy = models.ForeignKey(
+        "kennel.Puppy",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Szczenię",
+    )
+
+    # --- PARAMETRY (Wszystkie opcjonalne!) ---
+    weight = models.FloatField(blank=True, null=True, verbose_name="Waga (kg)", help_text="Wpisz wagę w kg (np. 15.5)")
+    height = models.FloatField(blank=True, null=True, verbose_name="Wzrost w kłębie (cm)")
+    chest_girth = models.FloatField(blank=True, null=True, verbose_name="Obwód klatki (cm)")
+    head_girth = models.FloatField(blank=True, null=True, verbose_name="Obwód głowy (cm)")
+    body_length = models.FloatField(blank=True, null=True, verbose_name="Długość tułowia (cm)")
+    temperature = models.FloatField(blank=True, null=True, verbose_name="Temperatura (°C)")
+
+    photo = models.ImageField(upload_to='measurements/photos/', blank=True, null=True, verbose_name="Zdjęcie sylwetki")
+
+    # Skala kondycji ciała (Body Condition Score)
+    bcs = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        verbose_name="Kondycja ciała (BCS)",
+        help_text="Skala 1-9 (1-wychudzenie, 5-idealna, 9-otyłość)"
+    )
+
+    # Dziennik / Kamienie milowe
+    notes = models.TextField(blank=True, null=True, verbose_name="Notatki / Kamienie milowe")
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+        verbose_name = "Pomiar"
+        verbose_name_plural = "Pomiary"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                        models.Q(dog__isnull=False, puppy__isnull=True) |
+                        models.Q(dog__isnull=True, puppy__isnull=False)
+                ),
+                name="measurement_one_animal_source",
+            )
+        ]
+
+    def clean(self):
+        sources = [self.dog, self.puppy]
+        selected_count = sum(bool(source) for source in sources)
+
+        if selected_count == 0:
+            raise ValidationError("Musisz wybrać psa LUB szczeniaka.")
+        if selected_count > 1:
+            raise ValidationError("Pomiar może być przypisany tylko do jednego zwierzęcia naraz.")
+
+    def __str__(self):
+        animal = self.dog if self.dog else self.puppy
+        return f"{animal} - {self.date.strftime('%d.%m.%Y')}"
+

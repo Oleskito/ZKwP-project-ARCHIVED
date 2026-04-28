@@ -1,5 +1,5 @@
 from django import forms
-from .models import Dog, Litter
+from .models import Dog, Litter, Puppy, Measurement
 from django.utils import timezone
 from datetime import timedelta
 
@@ -14,7 +14,7 @@ class DogForm(forms.ModelForm):
             'father', 'mother',
             'co_owner_first_name', 'co_owner_last_name',
             'co_owner_address_line_one', 'co_owner_address_line_two',
-            'co_owner_city', 'co_owner_region', 'co_owner_postal_code', 'co_owner_country'
+            'co_owner_city', 'co_owner_region', 'co_owner_postal_code', 'co_owner_country', 'profile_picture'
         ]
         widgets = {
             'birth_date': forms.DateInput(format='%Y-%m-%d',attrs={'type': 'date'}),
@@ -23,6 +23,7 @@ class DogForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         # 1. Pobranie użytkownika i inicjalizacja formularza
         self.user = kwargs.pop('user', None)
+        self.promote_puppy_id = kwargs.pop('promote_puppy_id', None)
         super().__init__(*args, **kwargs)
 
         # 2. STYLIZACJA: Nadanie bazowego wyglądu wszystkim polom
@@ -56,18 +57,34 @@ class DogForm(forms.ModelForm):
         if not chip:
             return chip
 
-        # 1. Sprawdzamy długość (najpierw walidacja formatu)
         if len(str(chip)) != 15:
             raise forms.ValidationError("Numer chip musi składać się z 15 cyfr.")
 
-        # 2. Sprawdzamy unikalność u tego hodowcy
-        exists = Dog.objects.filter(
-            breeder=self.user,
-            chip_number=chip
-        ).exclude(pk=self.instance.pk).exists()
+        # 1. Sprawdzamy dorosłe psy
+        dog_qs = Dog.objects.filter(breeder=self.user, chip_number=chip)
+        if self.instance and self.instance.pk:
+            dog_qs = dog_qs.exclude(pk=self.instance.pk)
+        if dog_qs.exists():
+            raise forms.ValidationError("Masz już innego dorosłego psa z tym numerem chipa w swojej hodowli.")
 
-        if exists:
-            raise forms.ValidationError("Masz już psa z tym numerem chipa w swojej hodowli.")
+        # 2. Sprawdzamy szczenięta
+        puppy_qs = Puppy.objects.filter(breeder=self.user, chip_number=chip)
+        if self.instance and self.instance.pk:
+            puppy_qs = puppy_qs.exclude(adult_dog_profile=self.instance)
+
+        # KLUCZOWE: Wykluczamy szczeniaka, którego właśnie awansujemy!
+        if getattr(self, 'promote_puppy_id', None):
+            puppy_qs = puppy_qs.exclude(pk=self.promote_puppy_id)
+
+        existing_puppy = puppy_qs.first()
+
+        if existing_puppy:
+            # Tutaj dzieje się magia UX! Zamiast blokować bez wyjaśnienia, dajemy instrukcję.
+            raise forms.ValidationError(
+                f"Ten chip należy do szczenięcia '{existing_puppy.name}' w Twojej hodowli. "
+                "Aby uniknąć bałaganu w dokumentacji, nie dodawaj go ręcznie. "
+                "Przejdź do profilu szczenięcia i użyj opcji 'Awansuj do stada'."
+            )
 
         return chip
 
@@ -76,8 +93,28 @@ class DogForm(forms.ModelForm):
         if not tattoo:
             return tattoo
 
-        if Dog.objects.filter(breeder=self.user, tattoo_number=tattoo).exclude(pk=self.instance.pk).exists():
-            raise forms.ValidationError("Masz już psa z tym numerem tatuażu.")
+        dog_qs = Dog.objects.filter(breeder=self.user, tattoo_number=tattoo)
+        if self.instance and self.instance.pk:
+            dog_qs = dog_qs.exclude(pk=self.instance.pk)
+        if dog_qs.exists():
+            raise forms.ValidationError("Masz już innego dorosłego psa z tym numerem tatuażu.")
+
+        puppy_qs = Puppy.objects.filter(breeder=self.user, tattoo_number=tattoo)
+        if self.instance and self.instance.pk:
+            puppy_qs = puppy_qs.exclude(adult_dog_profile=self.instance)
+
+        if getattr(self, 'promote_puppy_id', None):
+            puppy_qs = puppy_qs.exclude(pk=self.promote_puppy_id)
+
+        existing_puppy = puppy_qs.first()
+
+        if existing_puppy:
+            # Ponownie serwujemy sprytną podpowiedź!
+            raise forms.ValidationError(
+                f"Ten tatuaż należy do szczenięcia '{existing_puppy.name}' w Twojej hodowli. "
+                "Aby uniknąć bałaganu w dokumentacji, nie dodawaj go ręcznie. "
+                "Przejdź do profilu szczenięcia i użyj opcji 'Awansuj do stada'."
+            )
 
         return tattoo
 
@@ -130,7 +167,7 @@ class LitterForm(forms.ModelForm):
             'litter_letter', 'status', 'breed',
             'mother', 'father',
             'mating_place', 'mating_date_start', 'mating_date_end', 'birth_date',
-            'males_count', 'females_count', 'deceased_count'
+            'males_count', 'females_count', 'deceased_count', 'cover_photo'
         ]
         widgets = {
             'mating_date_start': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
@@ -266,15 +303,143 @@ class LitterForm(forms.ModelForm):
         readable_status = status_labels.get(status, status)
         statuses_pre_birth = ['planned', 'mating', 'not_pregnant']
 
+        mating_start = cleaned_data.get('mating_date_start')
+        mating_end = cleaned_data.get('mating_date_end')
+        birth_date = cleaned_data.get('birth_date')
+
+        if mating_start and mating_end and mating_start > mating_end:
+            self.add_error('mating_date_start', "Data rozpoczęcia krycia nie może być późniejsza niż data zakończenia.")
+
+        if birth_date:
+            if mating_start and mating_start > birth_date:
+                self.add_error('birth_date', "Narodziny nie mogą nastąpić przed rozpoczęciem krycia.")
+            if mating_end and mating_end > birth_date:
+                self.add_error('birth_date', "Narodziny nie mogą nastąpić przed zakończeniem krycia.")
+
         if status in statuses_pre_birth:
             if birth_date:
                 self.add_error('birth_date', f'Mioty o statusie "{readable_status}" nie mogą mieć daty narodzin.')
             if total_puppies > 0:
                 self.add_error('status', f'Nie możesz przypisać szczeniąt do miotu o statusie "{readable_status}".')
 
-        statuses_post_birth = ['born', 'registered', 'inspected', 'archived']
+        statuses_post_birth = ['born', 'registered', 'inspected',]
 
-        if status in statuses_post_birth and not birth_date:
-            self.add_error('birth_date', f'Miot o statusie "{readable_status}" musi mieć podaną datę narodzin.')
+        if status in statuses_post_birth:
+            if not birth_date:
+                self.add_error('birth_date', f'Miot o statusie "{readable_status}" musi mieć podaną datę narodzin.')
+            if total_puppies == 0:
+                self.add_error('status', f'Miot o statusie "{readable_status}" musi mieć przypisane szczenięta.')
 
         return cleaned_data
+
+
+class PuppyForm(forms.ModelForm):
+    class Meta:
+        model = Puppy
+        fields = ['litter', 'name', 'gender', 'color', 'internal_id', 'chip_number', 'tattoo_number', 'status', 'profile_picture']
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        # STYLIZACJA
+        input_classes = (
+            "block w-full appearance-none rounded-xl border border-gray-300 px-4 py-2 "
+            "text-sm text-gray-900 shadow-sm focus:border-indigo-600 focus:ring-indigo-600 "
+            "transition-all placeholder:text-gray-400 bg-white"
+        )
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.CheckboxInput):
+                field.widget.attrs.update({'class': input_classes})
+
+        # FILTROWANIE - Hodowca widzi w formularzu tylko SWOJE mioty
+        if self.user:
+            self.fields['litter'].queryset = Litter.objects.filter(breeder=self.user).order_by('-created_at')
+
+        if self.instance and self.instance.pk and hasattr(self.instance,
+                                                          'adult_dog_profile') and self.instance.adult_dog_profile:
+            locked_fields = ['chip_number', 'tattoo_number', 'gender', 'name', 'color']
+            for field in locked_fields:
+                if field in self.fields:
+                    self.fields[field].disabled = True
+                    self.fields[field].widget.attrs['class'] += " bg-gray-100 text-gray-500 cursor-not-allowed"
+                    self.fields[field].help_text = "Zablokowane (szczenię awansowane do stada)."
+
+    def clean_chip_number(self):
+        chip = self.cleaned_data.get('chip_number')
+        if not chip:
+            return chip
+
+        # 1. Walidacja formatu (15 cyfr)
+        if len(str(chip)) != 15:
+            raise forms.ValidationError("Numer chip musi składać się z 15 cyfr.")
+
+        # 2. Sprawdzamy unikalność u tego hodowcy (szukamy w psach i szczeniętach)
+        exists_in_dogs = Dog.objects.filter(breeder=self.user, chip_number=chip).exists()
+        exists_in_puppies = Puppy.objects.filter(breeder=self.user, chip_number=chip).exclude(pk=self.instance.pk).exists()
+
+        if exists_in_dogs or exists_in_puppies:
+            raise forms.ValidationError("Masz już zwierzę z tym numerem chipa w swojej hodowli.")
+
+        return chip
+
+    def clean_tattoo_number(self):
+        tattoo = self.cleaned_data.get('tattoo_number')
+        if not tattoo:
+            return tattoo
+
+        exists_in_dogs = Dog.objects.filter(breeder=self.user, tattoo_number=tattoo).exists()
+        exists_in_puppies = Puppy.objects.filter(breeder=self.user, tattoo_number=tattoo).exclude(pk=self.instance.pk).exists()
+
+        if exists_in_dogs or exists_in_puppies:
+            raise forms.ValidationError("Masz już zwierzę z tym numerem tatuażu.")
+
+        return tattoo
+
+
+class MeasurementForm(forms.ModelForm):
+    class Meta:
+        model = Measurement
+        fields = ['date', 'weight', 'height', 'chest_girth', 'head_girth', 'body_length', 'temperature', 'bcs', 'photo', 'notes']
+
+        # Określamy dokładne typy inputów i ich atrybuty (krok ułamkowy i format daty)
+        widgets = {
+            'date': forms.DateInput(
+                format='%Y-%m-%d',  # To naprawia znikającą datę przy edycji!
+                attrs={'type': 'date'}
+            ),
+            'weight': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'height': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'chest_girth': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'head_girth': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'body_length': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'temperature': forms.NumberInput(attrs={'step': '0.1', 'min': '0'}),
+            'bcs': forms.NumberInput(attrs={'step': '1', 'min': '1', 'max': '9'}),  # Skala BCS od 1 do 9
+            'notes': forms.Textarea(attrs={'rows': 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        # 1. Przechwytujemy psa lub szczeniaka z widoku
+        self.dog = kwargs.pop('dog', None)
+        self.puppy = kwargs.pop('puppy', None)
+
+        super().__init__(*args, **kwargs)
+
+        # 2. Wstrzykujemy zwierzaka do instancji PRZED walidacją
+        # Dzięki temu model.clean() przestanie blokować zapis!
+        if self.dog:
+            self.instance.dog = self.dog
+        if self.puppy:
+            self.instance.puppy = self.puppy
+
+        # BAZOWA STYLIZACJA DLA WSZYSTKICH INPUTÓW POMIARÓW
+        input_classes = (
+            "block w-full appearance-none rounded-lg border border-gray-200 px-3 py-2.5 "
+            "text-base lg:text-xs text-gray-900 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 "
+            "transition-all placeholder:text-gray-400 bg-white outline-none"
+        )
+
+        # Pętla przypisująca klasę Tailwind do każdego pola
+        for field_name, field in self.fields.items():
+            current_class = field.widget.attrs.get('class', '')
+            field.widget.attrs['class'] = f"{current_class} {input_classes}".strip()

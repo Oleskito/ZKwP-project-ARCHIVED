@@ -1,9 +1,11 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
-from .models import Dog, Litter, Puppy
+from .models import Dog, Litter, Puppy, Measurement
 from django.db.models import Q
-from .forms import DogForm, LitterForm
+from .forms import DogForm, LitterForm, PuppyForm, MeasurementForm
 from django.contrib import messages
+from django.utils.dateparse import parse_date
+from django.utils import timezone
 
 @login_required
 def dashboard_view(request):
@@ -28,8 +30,8 @@ def dashboard_view(request):
 @login_required
 def dashboard_dog_view(request):
     breeder = request.user
+    active_tab = request.GET.get('tab', 'active')
 
-    # --- 1. PARAMETRY ---
     q = request.GET.get('q', '').strip()
     selected_genders = request.GET.getlist('gender')
     selected_breeds = request.GET.getlist('breed')
@@ -37,47 +39,36 @@ def dashboard_dog_view(request):
     date_to = request.GET.get('date_to')
     selected_statuses = request.GET.getlist('status')
     sort_by = request.GET.get('sort', 'name_asc')
-    active_tab = request.GET.get('tab', 'active')  # 'active' lub 'archived'
 
-    # --- 2. FILTRY GLOBALNE (Dla obu list i liczników) ---
-    base_query = Dog.objects.filter(breeder=breeder)
+    # Bazy całkowite (do licznika "w tle")
+    total_active_base = Dog.objects.filter(breeder=breeder, is_archived=False)
+    total_archived_base = Dog.objects.filter(breeder=breeder, is_archived=True)
 
-    # Dynamiczne rasy dla Twojej hodowli
-    available_breeds = base_query.exclude(breed__isnull=True).values_list('breed__name', flat=True).distinct()
+    # Izolacja - filtrujemy tylko tę bazę, w której jesteśmy
+    if active_tab == 'active':
+        current_qs = total_active_base
+        available_breeds = total_active_base.exclude(breed__isnull=True).values_list('breed__name', flat=True).distinct()
+    else:
+        current_qs = total_archived_base
+        available_breeds = total_archived_base.exclude(breed__isnull=True).values_list('breed__name', flat=True).distinct()
 
+    # Aplikowanie filtrów (tylko do current_qs!)
     if q:
-        base_query = base_query.filter(
+        current_qs = current_qs.filter(
             Q(name__icontains=q) | Q(chip_number__icontains=q) |
             Q(tattoo_number__icontains=q) | Q(pkr_number__icontains=q)
         )
     if selected_genders:
-        base_query = base_query.filter(gender__in=selected_genders)
+        current_qs = current_qs.filter(gender__in=selected_genders)
     if selected_breeds:
-        base_query = base_query.filter(breed__name__in=selected_breeds)
+        current_qs = current_qs.filter(breed__name__in=selected_breeds)
     if date_from:
-        base_query = base_query.filter(birth_date__gte=date_from)
+        current_qs = current_qs.filter(birth_date__gte=date_from)
     if date_to:
-        base_query = base_query.filter(birth_date__lte=date_to)
-
-    # --- 3. PODZIAŁ I LICZNIKI (Niezależne od statusu) ---
-    # To gwarantuje, że (4) przy zakładce nie zniknie, gdy wybierzesz status
-    active_base = base_query.filter(is_archived=False)
-    archived_base = base_query.filter(is_archived=True)
-
-    active_count = active_base.count()
-    archived_count = archived_base.count()
-
-    # --- 4. FILTROWANIE PO STATUSIE (Tylko dla aktualnej zakładki) ---
-    active_dogs = active_base
-    archived_dogs = archived_base
-
+        current_qs = current_qs.filter(birth_date__lte=date_to)
     if selected_statuses:
-        if active_tab == 'active':
-            active_dogs = active_base.filter(breeding_status__in=selected_statuses)
-        else:
-            archived_dogs = archived_base.filter(breeding_status__in=selected_statuses)
+        current_qs = current_qs.filter(breeding_status__in=selected_statuses)
 
-    # --- 5. SORTOWANIE ---
     sort_mapping = {
         'name_asc': 'name',
         'name_desc': '-name',
@@ -85,8 +76,19 @@ def dashboard_dog_view(request):
         'date_asc': 'birth_date',
     }
     sort_field = sort_mapping.get(sort_by, 'name')
-    active_dogs = active_dogs.order_by(sort_field)
-    archived_dogs = archived_dogs.order_by(sort_field)
+    current_qs = current_qs.order_by(sort_field)
+
+    # Obliczanie liczników i wysyłanie list
+    if active_tab == 'active':
+        active_count = current_qs.count()  # Zmienny licznik
+        archived_count = total_archived_base.count()  # Stały licznik w tle
+        active_dogs = current_qs
+        archived_dogs = Dog.objects.none()
+    else:
+        active_count = total_active_base.count()  # Stały licznik w tle
+        archived_count = current_qs.count()  # Zmienny licznik
+        active_dogs = Dog.objects.none()
+        archived_dogs = current_qs
 
     context = {
         'active_dogs': active_dogs,
@@ -108,24 +110,54 @@ def dashboard_dog_view(request):
 
 @login_required
 def dog_add_view(request):
-    # Wyciągamy przydomek bezpośrednio z Twojego modelu Breeder
-    # Jeśli jest pusty, używamy domyślnego tekstu
     user_kennel = request.user.kennel_name or "NIEUSTAWIONY PRZYDOMEK"
 
+    puppy_id = request.GET.get('promote_puppy')
+    puppy_to_promote = None
+    if puppy_id:
+        puppy_to_promote = get_object_or_404(Puppy, pk=puppy_id, breeder=request.user)
+        # Zabezpieczenie przed ponownym awansem
+        if hasattr(puppy_to_promote, 'adult_dog_profile') and puppy_to_promote.adult_dog_profile:
+            messages.warning(request, f"Szczenię {puppy_to_promote.name} jest już w dorosłym stadzie!")
+            return redirect('dashboard_puppy')
+
     if request.method == 'POST':
-        # KLUCZOWE: Tutaj też musisz podać 'user', żeby walidacja unikalności zadziałała!
-        form = DogForm(request.POST, request.FILES, user=request.user)
+        # Przekazujemy ID szczeniaka, by pominąć blokadę powielonego chipa
+        promote_id = puppy_to_promote.pk if puppy_to_promote else None
+        form = DogForm(request.POST, request.FILES, user=request.user, promote_puppy_id=promote_id)
 
         if form.is_valid():
             dog = form.save(commit=False)
-            dog.breeder = request.user  # To jest ten "ręczny" balans dla commit=False
+            dog.breeder = request.user
             dog.save()
-            # Upewnij się, że masz taką nazwę URL w urls.py
-            messages.success(request, f"Pomyślnie dodano psa {dog.name}!")
+
+            # MAGIA AWANSU: Most w bazie danych
+            if puppy_to_promote:
+                puppy_to_promote.adult_dog_profile = dog
+                puppy_to_promote.status = 'staying'  # Zmienia status w miocie
+                puppy_to_promote.save()
+                messages.success(request, f"Pomyślnie awansowano szczenię {dog.name} do stada!")
+            else:
+                messages.success(request, f"Pomyślnie dodano psa {dog.name}!")
+
             return redirect('dashboard_dog')
     else:
-        # Pusty formularz dla żądania GET
-        form = DogForm(user=request.user)
+        # Wstępne wypełnienie formularza danymi malucha
+        initial_data = {}
+        if puppy_to_promote:
+            initial_data = {
+                'name': puppy_to_promote.name,
+                'gender': puppy_to_promote.gender,
+                'chip_number': puppy_to_promote.chip_number,
+                'tattoo_number': puppy_to_promote.tattoo_number,
+                'birth_date': puppy_to_promote.litter.birth_date if puppy_to_promote.litter else None,
+                'breed': puppy_to_promote.litter.breed if puppy_to_promote.litter else None,
+                'mother': puppy_to_promote.litter.mother if puppy_to_promote.litter else None,
+                'father': puppy_to_promote.litter.father if puppy_to_promote.litter else None,
+            }
+            messages.info(request, f"Formularz skopiował podstawowe dane szczenięcia {puppy_to_promote.name}.")
+
+        form = DogForm(user=request.user, initial=initial_data)
 
     return render(request, 'dashboard_dog/dashboard_dog_add.html', {
         'form': form,
@@ -135,15 +167,20 @@ def dog_add_view(request):
 
 @login_required
 def dog_delete_view(request, pk):
-    # Pobieramy psa lub wyrzucamy 404, jeśli nie należy do tego hodowcy
     dog = get_object_or_404(Dog, pk=pk, breeder=request.user)
 
     if request.method == 'POST':
-        dog.delete()  # To jest trwałe usunięcie z bazy (Hard Delete)
-        messages.success(request, f"Pomyślnie usunięto psa {dog.name}!")
+        # COFNIĘCIE AWANSU: Gdy usuwamy psa, szczeniak znów staje się dostępny
+        if hasattr(dog, 'original_puppy') and dog.original_puppy:
+            puppy = dog.original_puppy
+            puppy.status = 'available'
+            puppy.save()
+
+        name = dog.name
+        dog.delete()
+        messages.success(request, f"Pomyślnie usunięto psa {name}!")
         return redirect('dashboard_dog')
 
-    # Przekierowanie do strony z wielkim czerwonym ostrzeżeniem
     return render(request, 'dashboard_dog/dashboard_dog_confirm_delete.html', {'dog': dog})
 
 
@@ -176,8 +213,8 @@ def dog_edit_view(request, pk):
 @login_required
 def dashboard_litter_view(request):
     breeder = request.user
+    active_tab = request.GET.get('tab', 'active')
 
-    # --- PARAMETRY ---
     q = request.GET.get('q', '').strip()
     selected_statuses = request.GET.getlist('status')
     date_from = request.GET.get('date_from')
@@ -185,48 +222,47 @@ def dashboard_litter_view(request):
     mating_date_from = request.GET.get('mating_date_from')
     mating_date_to = request.GET.get('mating_date_to')
     sort_by = request.GET.get('sort', 'date_desc')
-    active_tab = request.GET.get('tab', 'active')
 
-    base_query = Litter.objects.filter(breeder=breeder)
+    total_active_base = Litter.objects.filter(breeder=breeder).exclude(status=Litter.Status.ARCHIVED)
+    total_archived_base = Litter.objects.filter(breeder=breeder, status=Litter.Status.ARCHIVED)
+
+    if active_tab == 'active':
+        current_qs = total_active_base
+    else:
+        current_qs = total_archived_base
 
     if q:
-        base_query = base_query.filter(litter_letter__icontains=q)
+        current_qs = current_qs.filter(litter_letter__icontains=q)
     if date_from:
-        base_query = base_query.filter(birth_date__gte=date_from)
+        current_qs = current_qs.filter(birth_date__gte=date_from)
     if date_to:
-        base_query = base_query.filter(birth_date__lte=date_to)
+        current_qs = current_qs.filter(birth_date__lte=date_to)
     if mating_date_from:
-        base_query = base_query.filter(mating_date_start__gte=mating_date_from)
+        current_qs = current_qs.filter(mating_date_start__gte=mating_date_from)
     if mating_date_to:
-        base_query = base_query.filter(mating_date_start__lte=mating_date_to)
-
-    # --- PODZIAŁ: Aktywne to wszystkie z wyjątkiem ARCHIVED ---
-    active_base = base_query.exclude(status=Litter.Status.ARCHIVED)
-    archived_base = base_query.filter(status=Litter.Status.ARCHIVED)
-
-    active_count = active_base.count()
-    archived_count = archived_base.count()
-
-    active_litters = active_base
-    archived_litters = archived_base
-
+        current_qs = current_qs.filter(mating_date_start__lte=mating_date_to)
     if selected_statuses:
-        if active_tab == 'active':
-            active_litters = active_base.filter(status__in=selected_statuses)
-        else:
-            archived_litters = archived_base.filter(status__in=selected_statuses)
+        current_qs = current_qs.filter(status__in=selected_statuses)
 
-    # --- SORTOWANIE ---
     sort_mapping = {
         'date_desc': '-birth_date',
         'date_asc': 'birth_date',
         'letter_asc': 'litter_letter',
         'letter_desc': '-litter_letter',
     }
-    # Używamy "-birth_date" jako domyślnego, bo najnowsze mioty są najważniejsze
     sort_field = sort_mapping.get(sort_by, '-birth_date')
-    active_litters = active_litters.order_by(sort_field)
-    archived_litters = archived_litters.order_by(sort_field)
+    current_qs = current_qs.order_by(sort_field)
+
+    if active_tab == 'active':
+        active_count = current_qs.count()
+        archived_count = total_archived_base.count()
+        active_litters = current_qs
+        archived_litters = Litter.objects.none()
+    else:
+        active_count = total_active_base.count()
+        archived_count = current_qs.count()
+        active_litters = Litter.objects.none()
+        archived_litters = current_qs
 
     context = {
         'active_litters': active_litters,
@@ -247,7 +283,7 @@ def dashboard_litter_view(request):
 @login_required
 def litter_add_view(request):
     if request.method == 'POST':
-        form = LitterForm(request.POST, user=request.user)
+        form = LitterForm(request.POST, request.FILES, user=request.user)
         if form.is_valid():
             litter = form.save(commit=False)
             litter.breeder = request.user
@@ -267,7 +303,7 @@ def litter_edit_view(request, pk):
 
     if request.method == 'POST':
         # Przekazujemy instance=litter, by Django wiedziało, że edytujemy, a nie tworzymy nowy!
-        form = LitterForm(request.POST, instance=litter, user=request.user)
+        form = LitterForm(request.POST, request.FILES, instance=litter, user=request.user)
 
         if form.is_valid():
             form.save()
@@ -296,3 +332,288 @@ def litter_delete_view(request, pk):
         return redirect('dashboard_litter')
 
     return render(request, 'dashboard_litter/dashboard_litter_confirm_delete.html', {'litter': litter})
+
+
+@login_required
+def dashboard_puppy_view(request):
+    active_tab = request.GET.get('tab', 'current')
+
+    query = request.GET.get('q', '').strip()
+    genders = request.GET.getlist('gender')
+    statuses = request.GET.getlist('status')
+    sort_by = request.GET.get('sort', 'name_asc')
+    litter_id = request.GET.get('litter_id')
+
+    # 1. BAZY CAŁKOWITE (Tło, bez włączonych filtrów)
+    base_puppies = Puppy.objects.filter(breeder=request.user).select_related('litter')
+
+    active_puppy_statuses = ['available', 'reserved', 'booked', 'staying', '', None]
+    inactive_puppy_statuses = ['sold', 'deceased']
+
+    total_current_base = base_puppies.exclude(litter__status='archived')
+
+    total_attention_base = base_puppies.filter(
+        litter__status='archived',
+        status__in=active_puppy_statuses
+    )
+
+    total_history_base = base_puppies.filter(
+        litter__status='archived',
+        status__in=inactive_puppy_statuses
+    )
+
+    # 2. IZOLACJA - Wybieramy bazę tylko dla aktywnej zakładki
+    if active_tab == 'attention':
+        current_qs = total_attention_base
+    elif active_tab == 'history':
+        current_qs = total_history_base
+    else:
+        current_qs = total_current_base
+
+    # 3. APLIKOWANIE FILTRÓW (Tylko do current_qs, filtry nie uciekają!)
+    if query:
+        current_qs = current_qs.filter(Q(name__icontains=query) | Q(chip_number__icontains=query))
+    if litter_id:
+        current_qs = current_qs.filter(litter_id=litter_id)
+    if genders:
+        current_qs = current_qs.filter(gender__in=genders)
+    if statuses:
+        current_qs = current_qs.filter(status__in=statuses)
+
+    if sort_by == 'name_asc':
+        current_qs = current_qs.order_by('name')
+    elif sort_by == 'name_desc':
+        current_qs = current_qs.order_by('-name')
+    else:
+        current_qs = current_qs.order_by('-created_at')
+
+    # 4. OBLICZANIE LICZNIKÓW I ROZDZIAŁ DANYCH
+    current_count = total_current_base.count()
+    attention_count = total_attention_base.count()
+    history_count = total_history_base.count()
+
+    current_puppies = Puppy.objects.none()
+    attention_puppies = Puppy.objects.none()
+    history_puppies = Puppy.objects.none()
+
+    if active_tab == 'attention':
+        attention_puppies = current_qs
+        attention_count = current_qs.count()  # Aktualizujemy licznik po filtrach
+    elif active_tab == 'history':
+        history_puppies = current_qs
+        history_count = current_qs.count()  # Aktualizujemy licznik po filtrach
+    else:
+        current_puppies = current_qs
+        current_count = current_qs.count()  # Aktualizujemy licznik po filtrach
+
+    # Mioty dla dropdowna z filtrowaniem - izolowane
+    if active_tab == 'current':
+        user_litters = Litter.objects.filter(breeder=request.user).exclude(status='archived').order_by('-created_at')
+    else:
+        user_litters = Litter.objects.filter(breeder=request.user, status='archived').order_by('-created_at')
+
+    context = {
+        'active_tab': active_tab,
+        'current_puppies': current_puppies,
+        'attention_puppies': attention_puppies,
+        'history_puppies': history_puppies,
+
+        # PRZESYŁAMY LICZNIKI
+        'current_count': current_count,
+        'attention_count': attention_count,
+        'history_count': history_count,
+
+        'user_litters': user_litters,
+        'current_q': query,
+        'current_genders': genders,
+        'current_statuses': statuses,
+        'current_sort': sort_by,
+        'current_litter_id': litter_id,
+    }
+
+    return render(request, 'dashboard_puppy/dashboard_puppy.html', context)
+
+
+@login_required
+def puppy_add_view(request):
+    if request.method == 'POST':
+        # Przekazujemy user do formularza (nawet jeśli na razie nie ma walidacji, przyda się za chwilę)
+        form = PuppyForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            puppy = form.save(commit=False)
+            puppy.breeder = request.user
+            puppy.save()
+            messages.success(request, f"Pomyślnie dodano szczenię {puppy.name}!")
+            return redirect('dashboard_puppy') # Upewnij się, że masz ten URL w urls.py
+    else:
+        form = PuppyForm(user=request.user)
+
+    return render(request, 'dashboard_puppy/dashboard_puppy_add.html', {'form': form})
+
+
+@login_required
+def puppy_edit_view(request, pk):
+    # Pobieramy szczenię, upewniając się, że należy do zalogowanego hodowcy
+    puppy = get_object_or_404(Puppy, pk=pk, breeder=request.user)
+
+    if request.method == 'POST':
+        form = PuppyForm(request.POST, request.FILES, instance=puppy, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Pomyślnie zaktualizowano dane szczenięcia {puppy.name}!")
+            return redirect('dashboard_puppy')
+    else:
+        form = PuppyForm(instance=puppy, user=request.user)
+
+    return render(request, 'dashboard_puppy/dashboard_puppy_edit.html', {
+        'form': form,
+        'puppy': puppy
+    })
+
+
+@login_required
+def puppy_delete_view(request, pk):
+    puppy = get_object_or_404(Puppy, pk=pk, breeder=request.user)
+
+    if request.method == 'POST':
+        # ZABEZPIECZENIE: Nie wolno usunąć szczeniaka, jeśli jest dorosły
+        if hasattr(puppy, 'adult_dog_profile') and puppy.adult_dog_profile:
+            messages.error(request, f"Nie możesz usunąć szczenięcia {puppy.name}, ponieważ figuruje jako dorosły pies w stadzie. Najpierw usuń dorosłego psa.")
+            return redirect('dashboard_puppy')
+
+        name = puppy.name
+        puppy.delete()
+        messages.success(request, f"Pomyślnie usunięto szczenię {name}.")
+        return redirect('dashboard_puppy')
+
+    return render(request, 'dashboard_puppy/dashboard_puppy_confirm_delete.html', {'puppy': puppy})
+
+
+@login_required
+def dog_measurements_view(request, pk):
+    dog = get_object_or_404(Dog, pk=pk, breeder=request.user)
+
+    # MAGIA POŁĄCZENIA: Pobieramy pomiary dorosłego psa ORAZ te ze szczenięctwa
+    if hasattr(dog, 'original_puppy') and dog.original_puppy:
+        measurements = Measurement.objects.filter(
+            Q(dog=dog) | Q(puppy=dog.original_puppy)
+        ).order_by('-date', '-created_at')
+    else:
+        measurements = Measurement.objects.filter(dog=dog).order_by('-date', '-created_at')
+
+    if request.method == 'POST':
+        form = MeasurementForm(request.POST, request.FILES, dog=dog)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Pomyślnie dodano nowy pomiar dla psa {dog.name}.")
+            return redirect('dog_measurements', pk=dog.pk)
+    else:
+        form = MeasurementForm(initial={'date': timezone.now().date()})
+
+    context = {
+        'dog': dog,
+        'measurements': measurements,
+        'form': form
+    }
+    return render(request, 'dashboard_dog/dashboard_dog_measurements.html', context)
+
+
+@login_required
+def puppy_measurements_view(request, pk):
+    puppy = get_object_or_404(Puppy, pk=pk, breeder=request.user)
+    measurements = Measurement.objects.filter(puppy=puppy).order_by('-date', '-created_at')
+
+    if request.method == 'POST':
+        # TUTAJ ZMIANA: Przekazujemy puppy=puppy do formularza
+        form = MeasurementForm(request.POST, request.FILES, puppy=puppy)
+        if form.is_valid():
+            form.save() # TUTAJ ZMIANA
+            messages.success(request, f"Pomyślnie dodano pomiar dla {puppy.name}.")
+            return redirect('puppy_measurements', pk=puppy.pk)
+    else:
+        form = MeasurementForm(initial={'date': timezone.now().date()})
+
+    context = {
+        'puppy': puppy,
+        'measurements': measurements,
+        'form': form
+    }
+    return render(request, 'dashboard_puppy/dashboard_puppy_measurements.html', context)
+
+
+@login_required
+def measurement_edit_view(request, pk):
+    measurement = get_object_or_404(Measurement, pk=pk)
+
+    if measurement.dog and measurement.dog.breeder != request.user:
+        messages.error(request, "Brak uprawnień.")
+        return redirect('dashboard_view')
+    if measurement.puppy and measurement.puppy.breeder != request.user:
+        messages.error(request, "Brak uprawnień.")
+        return redirect('dashboard_view')
+
+    if request.method == 'POST':
+        form = MeasurementForm(request.POST, request.FILES, instance=measurement)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie zaktualizowano pomiar.")
+
+            # ZMIANA: Bezpieczne przekierowania
+            if measurement.dog:
+                return redirect('dog_measurements', pk=measurement.dog.pk)
+            elif measurement.puppy:
+                # Jeśli to szczeniak, który został już awansowany, wracamy do dorosłego psa
+                if hasattr(measurement.puppy, 'adult_dog_profile') and measurement.puppy.adult_dog_profile:
+                    return redirect('dog_measurements', pk=measurement.puppy.adult_dog_profile.pk)
+                # W przeciwnym razie wracamy do profilu szczeniaka
+                return redirect('puppy_measurements', pk=measurement.puppy.pk)
+    else:
+        form = MeasurementForm(instance=measurement)
+
+    animal_name = measurement.dog.name if measurement.dog else measurement.puppy.name
+    animal_pk = measurement.dog.pk if measurement.dog else measurement.puppy.pk
+    is_dog = True if measurement.dog else False
+
+    context = {
+        'form': form,
+        'animal_name': animal_name,
+        'animal_pk': animal_pk,
+        'is_dog': is_dog,
+        'measurement': measurement
+    }
+    return render(request, 'dashboard/measurement_edit.html', context)
+
+
+@login_required
+def measurement_delete_view(request, pk):
+    measurement = get_object_or_404(Measurement, pk=pk)
+
+    if measurement.dog and measurement.dog.breeder != request.user:
+        messages.error(request, "Brak uprawnień.")
+        return redirect('dashboard_view')
+    if measurement.puppy and measurement.puppy.breeder != request.user:
+        messages.error(request, "Brak uprawnień.")
+        return redirect('dashboard_view')
+
+    # Określanie punktu powrotnego
+    redirect_to_dog = None
+    redirect_to_puppy = None
+
+    if measurement.dog:
+        redirect_to_dog = measurement.dog.pk
+    elif measurement.puppy:
+        if hasattr(measurement.puppy, 'adult_dog_profile') and measurement.puppy.adult_dog_profile:
+            redirect_to_dog = measurement.puppy.adult_dog_profile.pk
+        else:
+            redirect_to_puppy = measurement.puppy.pk
+
+    if request.method == 'POST':
+        measurement.delete()
+        messages.success(request, "Pomyślnie usunięto pomiar.")
+
+    if redirect_to_dog:
+        return redirect('dog_measurements', pk=redirect_to_dog)
+    elif redirect_to_puppy:
+        return redirect('puppy_measurements', pk=redirect_to_puppy)
+
+    return redirect('dashboard_view')

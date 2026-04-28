@@ -5,33 +5,74 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5c1a64ec-d51f-411b-b4a2-f2d76930b4b5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_accordion_row.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_add.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_confirm_delete.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_edit.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/Przepisy/ankieta i post.txt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0004_puppy_adult_dog_profile_alter_puppy_status.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0005_alter_puppy_status.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0006_weightrecord.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0007_dog_height.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0008_remove_dog_height_heightrecord.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0009_measurement_and_more.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0010_dog_profile_picture_litter_cover_photo_and_more.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/kennel/migrations/0011_dog_adult_dog_profile.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/dogs/profiles/zdjecie_psiaka.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/dogs/profiles/zdjecie_psiaka_lQs789S.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/litters/covers/zdjecie_psiaka.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/measurements/photos/zdjecie_psiaka.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/measurements/photos/zdjecie_psiaka_8ZthnmJ.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/measurements/photos/zdjecie_psiaka_NEwlxsN.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/measurements/photos/zdjecie_psiaka_b9VlMEq.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/measurements/photos/zdjecie_psiaka_yaQUW1z.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/puppies/profiles/zdjecie_psiaka.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/puppies/profiles/zdjecie_psiaka_5uerXv4.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/media/puppies/profiles/zdjecie_psiaka_YmBGlzu.jpg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard/measurement_edit.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_measurements.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_accordion_row.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_add.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_confirm_delete.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_edit.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_measurements.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Przepisy/update.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Przepisy/update.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Styles/output.css" beforeDir="false" afterPath="$PROJECT_DIR$/Styles/output.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core_config/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_config/settings.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/core_config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kennel/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/kennel/admin.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kennel/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/kennel/forms.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kennel/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/kennel/models.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/kennel/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/kennel/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard/dashboard.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard/dashboard.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/dashboard/kennel_panel_base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard/kennel_panel_base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_accordion_row.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_accordion_row.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_add.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_add.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_confirm_delete.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_confirm_delete.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_edit.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_accordion_row.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_accordion_row.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_add.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_add.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_edit.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_litter/dashboard_litter_edit.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_E:/Projekt ZKwP" value="3BJ92O66GmcAbZ2A4ZHT9vFbKpa" />
+    </persistenceIdMap>
+  </component>
+  <component name="CopilotUserSelectedChatMode">
+    <option name="chatModeId" value="Agent" />
+  </component>
   <component name="DjangoConsoleOptions" custom-start-script="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)">
     <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="92" />
+    <option name="cachedIndexableFilesCount" value="127" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -82,48 +123,49 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "DefaultHtmlFileTemplate": "HTML File",
-    "Django tests.Test: .executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Python.manage.executor": "Run",
-    "Python.views.executor": "Run",
-    "RunOnceActivity.MCP Project settings loaded": "true",
-    "RunOnceActivity.OpenDjangoStructureViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.pycharm.django.structure.promotion.once.per.project": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "ai.playground.ignore.import.keys.banner.in.settings": "true",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "django.template.preview.state": "SHOW_EDITOR",
-    "git-widget-placeholder": "dashboard",
-    "junie.onboarding.icon.badge.shown": "true",
-    "last_opened_file_path": "E:/Projekt ZKwP/templates/dashboard_litter",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "configurable.tailwindcss",
-    "sql.codeStylePanel.last.previewDialect": "PostgreSQL",
-    "to.speed.mode.migration.done": "true",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;DefaultHtmlFileTemplate&quot;: &quot;HTML File&quot;,
+    &quot;Django tests.Test: .executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.manage.executor&quot;: &quot;Run&quot;,
+    &quot;Python.views.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.OpenDjangoStructureViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.pycharm.django.structure.promotion.once.per.project&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;ai.playground.ignore.import.keys.banner.in.settings&quot;: &quot;true&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;django.template.preview.state&quot;: &quot;SHOW_EDITOR&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dashboard&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Projekt ZKwP/templates/dashboard_litter&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;sql.codeStylePanel.last.previewDialect&quot;: &quot;PostgreSQL&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   },
-  "keyToStringList": {
-    "DatabaseDriversLRU": [
-      "postgresql"
+  &quot;keyToStringList&quot;: {
+    &quot;DatabaseDriversLRU&quot;: [
+      &quot;postgresql&quot;
     ]
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="E:\Projekt ZKwP\templates\dashboard_litter" />
       <recent name="E:\Projekt ZKwP" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="E:\Projekt ZKwP\DB_BACKUPS" />
       <recent name="E:\Projekt ZKwP\templates\dashboard_dog" />
       <recent name="E:\Projekt ZKwP\templates\dashboard" />
       <recent name="E:\Projekt ZKwP\templates\home_pages" />
@@ -224,7 +266,19 @@
       <workItem from="1775843629081" duration="10718000" />
       <workItem from="1775903525154" duration="1243000" />
       <workItem from="1775905330123" duration="9059000" />
-      <workItem from="1775920630778" duration="16973000" />
+      <workItem from="1775920630778" duration="18264000" />
+      <workItem from="1775993100877" duration="9327000" />
+      <workItem from="1776019770842" duration="4410000" />
+      <workItem from="1776102729026" duration="27000" />
+      <workItem from="1776169360934" duration="3632000" />
+      <workItem from="1776234937545" duration="7679000" />
+      <workItem from="1776272084534" duration="4039000" />
+      <workItem from="1776339010985" duration="3641000" />
+      <workItem from="1776878574620" duration="766000" />
+      <workItem from="1776879363512" duration="1858000" />
+      <workItem from="1777020101226" duration="11393000" />
+      <workItem from="1777198682333" duration="15128000" />
+      <workItem from="1777396542566" duration="7459000" />
     </task>
     <servers />
   </component>
@@ -242,19 +296,18 @@
       </map>
     </option>
   </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/kennel/models.py</url>
-          <line>152</line>
-          <option name="timeStamp" value="2" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
-  </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/Projekt_ZKwP$Test__.coverage" NAME="Test:  Coverage Results" MODIFIED="1774199975279" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
     <SUITE FILE_PATH="coverage/Projekt_ZKwP$views.coverage" NAME="views Coverage Results" MODIFIED="1774198061848" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$/accounts" />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+      <option value=".github/prompts" />
+    </promptFileLocations>
   </component>
 </project>

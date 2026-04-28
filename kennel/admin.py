@@ -10,6 +10,7 @@ from .models import (
     TreatmentResult,
     TreatmentType,
     DocumentRecord,
+    Measurement,
 )
 
 
@@ -94,6 +95,48 @@ class DocumentRecordAdmin(admin.ModelAdmin):
         elif obj.puppy:
             return obj.puppy
         return obj.litter
+
+
+    get_animal.short_description = ("Zwierzę")
+
+
+@admin.register(Measurement)
+class MeasurementAdmin(admin.ModelAdmin):
+    # Co widać na głównej liście pomiarów
+    list_display = ('get_animal', 'date', 'weight', 'height', 'temperature', 'created_at')
+
+    # Filtrowanie po prawej stronie
+    list_filter = ('date', 'created_at')
+
+    # Wyszukiwarka (po imieniu psa lub szczeniaka)
+    search_fields = ('dog__name', 'puppy__name')
+
+    # Podział formularza na sekcje!
+    fieldsets = (
+        ('Powiązanie i Data', {
+            'fields': ('date', 'dog', 'puppy')
+        }),
+        ('Pomiary podstawowe', {
+            'fields': ('weight', 'height', 'temperature')
+        }),
+        ('Pomiary zaawansowane (Opcjonalne)', {
+            'classes': ('collapse',),  # Ta klasa sprawia, że sekcja jest domyślnie zwinięta!
+            'fields': ('chest_girth', 'head_girth', 'body_length', 'bcs')
+        }),
+        ('Dziennik', {
+            'fields': ('notes',)
+        }),
+    )
+
+    # Funkcja pomocnicza do list_display, żeby ładnie wyświetlać kto był mierzony
+    def get_animal(self, obj):
+        if obj.dog:
+            return f"Pies: {obj.dog.name}"
+        if obj.puppy:
+            return f"Szczeniak: {obj.puppy.name}"
+        return "Brak powiązania"
+
+    get_animal.short_description = 'Zwierzę'
 
 
     get_animal.short_description = "Zwierzę"
