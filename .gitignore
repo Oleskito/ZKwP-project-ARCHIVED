@@ -1,17 +1,36 @@
-.env
-__pycache__/
-*.pyc
-db.sqllite3
-venv/
-.venv/
-DB_BACKUPS/
-./.idea
-AGENTS.md
+# Foldery systemowe i kontrola wersji
+.git/
+.idea/
 
-#tailwind i podobne
-/Styles/output.css
-tailwindcss.exe
+# Środowiska wirtualne
+.venv/
+venv/
+env/
+
+# Cache i pliki kompilowane
+__pycache__/
+**/__pycache__/**
+*.pyc
+
+# Bazy danych i sekrety
+.env
+*.env
+.pgpass
+dump.sql
+pg_data/
+DB_BACKUPS/
+
+# Frontend i inne foldery
 node_modules/
+Przepisy/
+Static/
+Styles/output.css
+tailwindcss.exe
 package.json
 package-lock.json
-
+*.log
+*.sqlite3
+*.db
+*.pdf
+*.jpg
+*.png
