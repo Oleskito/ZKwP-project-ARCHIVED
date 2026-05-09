@@ -24,4 +24,4 @@ class PaymentAdmin(admin.ModelAdmin):
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ("name", "price", "duration_days")
+    list_display = ("name", "price", "interval", "max_litters_per_year", "max_breeding_dogs", "storage_gb")

@@ -32,28 +32,54 @@ TURNSTILE_SECRET_KEY=<cloudflare turnstile secret>
 
 The sole user model (`AUTH_USER_MODEL = "accounts.Breeder"`). The `username` field is removed; `email` is the login identifier.
 
-| Field | Type | Notes |
-|-------|------|-------|
-| `id` | `UUIDField` | PK |
-| `email` | `EmailField(unique=True)` | `USERNAME_FIELD` |
-| `first_name` | `CharField(150)` | From `AbstractUser` |
-| `last_name` | `CharField(150)` | From `AbstractUser` |
-| `address_line_one` | `CharField(80)` | |
-| `address_line_two` | `CharField(30)` | |
-| `city` | `CharField(50)` | |
-| `region` | `CharField(50)` | |
-| `postal_code` | `CharField(15)` | |
-| `country` | `CountryField` | Default `"PL"` |
-| `kennel_name` | `CharField(80)` | Breeding kennel name ("przydomek") |
-| `branch` | `CharField(80)` | ZKwP branch name |
-| `membership_number` | `CharField(30)` | ZKwP membership card number |
-| `subscription_valid_until` | `DateField` | null/blank |
-| `current_plan` | `ForeignKey(SubscriptionPlan, SET_NULL)` | null/blank |
-| `phone_number` | `CharField(20)` | |
-| `is_verified` | `BooleanField` | Default `False` |
-| `tos_accepted_at` | `DateTimeField` | null/blank |
-| `created_at` | `DateTimeField(auto_now_add)` | |
-| `updated_at` | `DateTimeField(auto_now)` | |
+| Field                        | Type                                     | Notes                                        |
+|------------------------------|------------------------------------------|----------------------------------------------|
+| `id`                         | `UUIDField`                              | PK                                           |
+| `email`                      | `EmailField(unique=True)`                | `USERNAME_FIELD`                             |
+| `mfa_verification`           | `BooleanField`                           | default False                                |
+| `first_name`                 | `CharField(150)`                         | From `AbstractUser`                          |
+| `last_name`                  | `CharField(150)`                         | From `AbstractUser`                          |
+| `address_line_one`           | `CharField(80)`                          |                                              |
+| `address_line_two`           | `CharField(30)`                          |                                              |
+| `city`                       | `CharField(50)`                          |                                              |
+| `region`                     | `CharField(50)`                          |                                              |
+| `postal_code`                | `CharField(15)`                          |                                              |
+| `country`                    | `CountryField`                           | Default `"PL"`                               |
+| `kennel_name`                | `CharField(80)`                          | Breeding kennel name ("przydomek")           |
+| `branch`                     | `CharField(80)`                          | ZKwP branch name                             |
+| `membership_number`          | `CharField(30)`                          | ZKwP membership card number                  |
+| `kennel_registration_number` | `CharField(50)`                          | Kennel registration number                   |
+| `subscription_valid_until`   | `DateTimeField`                          | null/blank; drives `account_status`          |
+| `subscription_activated_at`  | `DateTimeField`                          | null/blank; set on registration or continuity reset |
+| `current_plan`               | `ForeignKey(SubscriptionPlan, SET_NULL)` | null/blank                                   |
+| `wants_email_notifications`  | `BooleanField`                           | null/blank                                   |
+| `phone_number`               | `CharField(20)`                          |                                              |
+| `is_verified`                | `BooleanField`                           | Default `False`                              |
+| `tos_accepted_at`            | `DateTimeField`                          | null/blank                                   |
+| `kennel_logo`                | `ImageField`                             | Upload to `kennel_logos/`; null/blank        |
+| `company_name`               | `CharField(150)`                         |                                              |
+| `nip`                        | `CharField(15)`                          |                                              |
+| `notes`                      | `CharField(500)`                         | Notes of everything, for example website url |
+| `created_at`                 | `DateTimeField(auto_now_add)`            |                                              |
+| `updated_at`                 | `DateTimeField(auto_now)`                |                                              |
+
+**Computed properties (not stored in DB):**
+- `account_status` — returns `AccountStatus` based on `subscription_valid_until` vs `timezone.now()`.
+- `days_remaining` — integer days until expiry (0 if expired or no subscription).
+- `is_continuity_broken` — `True` if subscription has been expired for more than 7 days (or no subscription).
+- `has_pit_access` — whether PiT generator access is granted (see Subscription Lifecycle below).
+- `pit_access_months_remaining` — months until PiT access for monthly plans; `None` for yearly or if not applicable.
+
+**Method `extend_subscription(months=1)`:** Extends subscription using `relativedelta`. If continuity is intact, adds months to `subscription_valid_until`; if broken, resets `subscription_activated_at = now` and starts `subscription_valid_until` from now.
+
+#### `AccountStatus` choices (nested in `Breeder`)
+
+| Value | Label | Condition |
+|-------|-------|-----------|
+| `active` | Aktywny | `now ≤ subscription_valid_until` |
+| `grace_period` | Okres karencji | 0–3 days past expiry |
+| `read_only` | Tylko odczyt | 3–180 days past expiry |
+| `frozen` | Zamrożony | >180 days past expiry, or no subscription |
 
 ---
 
@@ -278,7 +304,11 @@ Defines available subscription tiers. Managed via admin only.
 | `id` | `UUIDField` | PK |
 | `name` | `CharField(60)` | |
 | `price` | `DecimalField(10, 2)` | |
-| `duration_days` | `PositiveBigIntegerField` | |
+| `interval` | `CharField` | Choices: `monthly` / `yearly`; default `monthly` |
+| `max_litters_per_year` | `PositiveBigIntegerField` | null/blank; enforced in app logic |
+| `max_breeding_dogs` | `PositiveBigIntegerField` | null/blank; enforced in app logic |
+| `storage_gb` | `PositiveIntegerField` | null/blank |
+| `pit_access_monthly_threshold` | `PositiveSmallIntegerField` | null/blank; months threshold for PiT access on monthly plans (Start=6, Pro=4, VIP=3) |
 | `created_at` / `updated_at` | `DateTimeField` | |
 
 #### `Payment`
@@ -297,12 +327,57 @@ A payment record. Both `breeder` and `plan` use `PROTECT` to prevent data loss �
 
 **`save()` side effect:** If `pk` is None (new record) and `amount` is not set, `amount` is auto-filled from `self.plan.price`.
 
+---
+
+## Subscription Lifecycle
+
+### Registration
+New users select a plan (Start / Pro / VIP) and receive a **2-month free trial**: `subscription_activated_at` and `subscription_valid_until` are set immediately; `subscription_valid_until = now + 2 months` using `relativedelta`. No `Payment` record is created for the trial.
+
+### Account Status Transitions
+Computed from `subscription_valid_until` — never stored in DB.
+
+| State | Condition |
+|-------|-----------|
+| `active` | `now ≤ subscription_valid_until` |
+| `grace_period` | 0–3 days past expiry |
+| `read_only` | 3–180 days past expiry |
+| `frozen` | >180 days past expiry, or no subscription |
+
+> **Data retention:** Frozen accounts are preserved for 3 years before being eligible for purging.
+
+### Continuity Rule
+`is_continuity_broken` is `True` when the subscription has been expired for **more than 7 days** (or no subscription exists). This governs stacking in `extend_subscription()`:
+
+- **Continuity intact** (≤ 7 days past expiry): months are added to the existing `subscription_valid_until`.
+- **Continuity broken** (> 7 days past expiry): `subscription_activated_at` resets to `now` and `subscription_valid_until` starts fresh from `now`.
+
+Always use `relativedelta` for calendar arithmetic (e.g. Jan 31 + 1 month → Feb 28, not Mar 3).
+
+### PiT Generator Access Rules
+Continuity must be intact (`is_continuity_broken == False`) for any PiT access.
+
+**Yearly plan:** Access granted when the user has at least one `Payment` with `status = "completed"` (the free trial creates no Payment record).
+
+**Monthly plan:** Access granted when `total months since subscription_activated_at ≥ current_plan.pit_access_monthly_threshold`.
+
+| Plan | `pit_access_monthly_threshold` |
+|------|-------------------------------|
+| Start | 6 months |
+| Pro | 4 months |
+| VIP | 3 months |
+
+### Downgrade Constraint
+Downgrades require the user to **manually reduce their dog/litter counts** to fit the new plan's limits before the downgrade is processed. The system must reject or block the downgrade until usage is within the target plan's bounds.
+
+---
+
 ## Migration State
 
 | App | Latest migration |
 |-----|-----------------|
-| `accounts` | `0002_breeder_current_plan` |
-| `kennel` | `0011_dog_adult_dog_profile` |
+| `accounts` | `0007_alter_breeder_subscription_valid_until` |
+| `kennel` | `0012_remove_dog_adult_dog_profile_and_more` |
 | `billing` | `0002_subscriptionplan_updated_at` |
 
 Always run `python manage.py showmigrations` to verify current state before creating new migrations.

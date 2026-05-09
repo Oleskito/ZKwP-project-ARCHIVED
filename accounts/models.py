@@ -1,7 +1,9 @@
 import uuid
 
+from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
+from django.utils import timezone
 from django_countries.fields import CountryField
 
 
@@ -31,12 +33,72 @@ class BreederManager(BaseUserManager):
 
 
 class Breeder(AbstractUser):
+    class ZKwPBranch(models.TextChoices):
+        BEDZIN = "Będzin", "Będzin"
+        BIALYSTOK = "Białystok", "Białystok"
+        BIELSKO_BIALA = "Bielsko-Biała", "Bielsko-Biała"
+        BYDGOSZCZ = "Bydgoszcz", "Bydgoszcz"
+        BYTOM = "Bytom", "Bytom"
+        CHOJNICE = "Chojnice", "Chojnice"
+        CHORZOW = "Chorzów", "Chorzów"
+        CZESTOCHOWA = "Częstochowa", "Częstochowa"
+        GDYNIA = "Gdynia", "Gdynia"
+        GNIEZNO = "Gniezno", "Gniezno"
+        GORZOW_WIELKOPOLSKI = "Gorzów Wielkopolski", "Gorzów Wielkopolski"
+        GRODZISK_MAZOWIECKI = "Grodzisk Mazowiecki", "Grodzisk Mazowiecki"
+        GRUDZIADZ = "Grudziądz", "Grudziądz"
+        INOWROCLAW = "Inowrocław", "Inowrocław"
+        JELENIA_GORA = "Jelenia Góra", "Jelenia Góra"
+        KALISZ = "Kalisz", "Kalisz"
+        KATOWICE = "Katowice", "Katowice"
+        KIELCE = "Kielce", "Kielce"
+        KOSZALIN = "Koszalin", "Koszalin"
+        KRAKOW = "Kraków", "Kraków"
+        KROSNO = "Krosno", "Krosno"
+        LEGIONOWO = "Legionowo", "Legionowo"
+        LEGNICA = "Legnica", "Legnica"
+        LUBLIN = "Lublin", "Lublin"
+        LODZ = "Łódź", "Łódź"
+        NOWY_SACZ = "Nowy Sącz", "Nowy Sącz"
+        NOWY_TARG = "Nowy Targ", "Nowy Targ"
+        OLSZTYN = "Olsztyn", "Olsztyn"
+        OPOLE = "Opole", "Opole"
+        PIASECZNO = "Piaseczno", "Piaseczno"
+        PIOTRKOW_TRYBUNALSKI = "Piotrków Trybunalski", "Piotrków Trybunalski"
+        PLOCK = "Płock", "Płock"
+        POZNAN = "Poznań", "Poznań"
+        PRZEMYSL = "Przemyśl", "Przemyśl"
+        RACIBORZ = "Racibórz", "Racibórz"
+        RADOM = "Radom", "Radom"
+        RYBNIK = "Rybnik", "Rybnik"
+        RZESZOW = "Rzeszów", "Rzeszów"
+        SLUPSK = "Słupsk", "Słupsk"
+        SOPOT = "Sopot", "Sopot"
+        SZCZECIN = "Szczecin", "Szczecin"
+        TORUN = "Toruń", "Toruń"
+        WALBRZYCH = "Wałbrzych", "Wałbrzych"
+        WARSZAWA = "Warszawa", "Warszawa"
+        WIELICZKA = "Wieliczka", "Wieliczka"
+        WLOCLAWEK = "Włocławek", "Włocławek"
+        WROCLAW = "Wrocław", "Wrocław"
+        ZABRZE = "Zabrze", "Zabrze"
+        ZAKOPANE = "Zakopane", "Zakopane"
+        ZGIERZ = "Zgierz", "Zgierz"
+        ZIELONA_GORA = "Zielona Góra", "Zielona Góra"
+
+    class AccountStatus(models.TextChoices):
+        ACTIVE = "active", "Aktywny"
+        GRACE_PERIOD = "grace_period", "Okres karencji"
+        READ_ONLY = "read_only", "Tylko odczyt"
+        FROZEN = "frozen", "Zamrożony"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data rejestracji")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
 
     username = None
     email = models.EmailField(unique=True, verbose_name="Adres email")
+    mfa_verification = models.BooleanField(default=False, verbose_name="Dwuetapowa weryfikacja")
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -60,14 +122,23 @@ class Breeder(AbstractUser):
     kennel_name = models.CharField(
         max_length=80, blank=True, verbose_name="Przydomek hodowlany"
     )
-    branch = models.CharField(max_length=80, blank=True, verbose_name="Oddział ZKwP")
+
+    branch = models.CharField(max_length=50, choices=ZKwPBranch.choices, blank=True, null=True) #type:ignore
     membership_number = models.CharField(
         max_length=30, blank=True, verbose_name="Numer legitymacji ZKwP"
     )
+    kennel_registration_number = models.CharField(
+        max_length=50,
+        blank=True,
+        verbose_name="Numer rejestracji przydomka (np. FCI)"
+    )
 
     # płatności:
-    subscription_valid_until = models.DateField(
+    subscription_valid_until = models.DateTimeField(
         blank=True, null=True, verbose_name="Subskrypcja aktywna do..."
+    )
+    subscription_activated_at = models.DateTimeField(
+        blank=True, null=True, verbose_name="Data aktywacji subskrypcji"
     )
 
     current_plan = models.ForeignKey(
@@ -77,11 +148,95 @@ class Breeder(AbstractUser):
         blank=True,
         verbose_name="aktualny plan subskrypcji",
     )
+    wants_email_notifications = models.BooleanField(
+        default=True,
+        verbose_name="Otrzymuj przypomnienia e-mail"
+    )
 
     phone_number = models.CharField(max_length=20, blank=True, verbose_name="Nr telefonu")
     is_verified = models.BooleanField(default = False, verbose_name = "Zweryfikowany")
     tos_accepted_at = models.DateTimeField(null=True, blank=True, verbose_name="Data akceptacji regulaminu")
+    kennel_logo = models.ImageField(
+        upload_to='kennel_logos/',
+        null=True,
+        blank=True,
+        verbose_name="Logo hodowli"
+    )
+    company_name = models.CharField(
+        max_length=150,
+        blank=True,
+        verbose_name="Nazwa firmy"
+    )
+    nip = models.CharField(
+        max_length=15,
+        blank=True,
+        verbose_name="NIP"
+    )
+    notes = models.CharField(max_length=500, blank=True, verbose_name="Notatki np. strona internetowa")
 
+
+    @property
+    def account_status(self) -> str:
+        if not self.subscription_valid_until:
+            return self.AccountStatus.FROZEN
+        now = timezone.now()
+        delta = now - self.subscription_valid_until
+        days = delta.total_seconds() / 86400
+        if days <= 0:
+            return self.AccountStatus.ACTIVE
+        elif days <= 3:
+            return self.AccountStatus.GRACE_PERIOD
+        elif days <= 180:
+            return self.AccountStatus.READ_ONLY
+        return self.AccountStatus.FROZEN
+
+    @property
+    def is_continuity_broken(self) -> bool:
+        if not self.subscription_valid_until:
+            return True
+        return (timezone.now() - self.subscription_valid_until).total_seconds() > 7 * 86400
+
+    @property
+    def days_remaining(self) -> int:
+        if not self.subscription_valid_until:
+            return 0
+        delta = self.subscription_valid_until - timezone.now()
+        return max(0, int(delta.total_seconds() / 86400))
+
+    @property
+    def has_pit_access(self) -> bool:
+        plan = self.current_plan
+        if not plan or self.is_continuity_broken:
+            return False
+        if plan.interval == "yearly":
+            return self.payments.filter(status="completed").exists()
+        if plan.interval == "monthly":
+            if not self.subscription_activated_at or not plan.pit_access_monthly_threshold:
+                return False
+            now = timezone.now()
+            months_active = (now.year - self.subscription_activated_at.year) * 12 + (now.month - self.subscription_activated_at.month)
+            return months_active >= plan.pit_access_monthly_threshold
+        return False
+
+    @property
+    def pit_access_months_remaining(self) -> int | None:
+        plan = self.current_plan
+        if not plan or plan.interval != "monthly":
+            return None
+        if not self.subscription_activated_at or not plan.pit_access_monthly_threshold:
+            return None
+        now = timezone.now()
+        months_active = (now.year - self.subscription_activated_at.year) * 12 + (now.month - self.subscription_activated_at.month)
+        return max(0, plan.pit_access_monthly_threshold - months_active)
+
+    def extend_subscription(self, months: int = 1) -> None:
+        now = timezone.now()
+        if self.subscription_valid_until and not self.is_continuity_broken:
+            self.subscription_valid_until += relativedelta(months=months)
+        else:
+            self.subscription_activated_at = now
+            self.subscription_valid_until = now + relativedelta(months=months)
+        self.save(update_fields=["subscription_valid_until", "subscription_activated_at"])
 
     def __str__(self):
         if self.kennel_name:

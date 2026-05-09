@@ -36,6 +36,8 @@ urlpatterns = [
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("register/", account_views.register_view, name="register"),
     path("price_list/", account_views.price_list_view, name="price_list"),
+    path("dashboard/profile/", account_views.your_profile_view, name="your_profile"),
+    path("dashboard/profile/reveal-sensitive/", account_views.reveal_sensitive_data_view, name="reveal_sensitive_data"),
 
     path("dashboard/", kennel_views.dashboard_view, name="dashboard"),
     path("dashboard/dog/", kennel_views.dashboard_dog_view, name="dashboard_dog"),

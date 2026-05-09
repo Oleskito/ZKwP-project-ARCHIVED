@@ -4,17 +4,30 @@ import uuid
 
 
 class SubscriptionPlan(models.Model):
+    class Interval(models.TextChoices):
+        MONTHLY = 'monthly', 'Miesięczny'
+        YEARLY = 'yearly', 'Roczny'
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania pakietu")
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
 
     name = models.CharField(max_length=60, verbose_name="Nazwa planu")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Cena")
-    duration_days = models.PositiveBigIntegerField(verbose_name="Czas trwania")
+    interval = models.CharField(
+        max_length=20,
+        choices=Interval.choices,
+        default=Interval.MONTHLY,
+        verbose_name="Okres rozliczeniowy"
+    )
+    max_litters_per_year = models.PositiveBigIntegerField(blank=True, null=True, verbose_name="Maksymalna liczba miotów rocznie")
+    max_breeding_dogs = models.PositiveBigIntegerField(blank=True, null=True, verbose_name="Maksymalna liczba aktywnych psów")
+    storage_gb = models.PositiveIntegerField(verbose_name="Pojemność dysku (GB)", blank=True, null=True)
+    pit_access_monthly_threshold = models.PositiveSmallIntegerField(
+        blank=True, null=True,
+        verbose_name="Próg miesięcy dla dostępu do PiT (miesięczny)"
+    )
 
-    # W przyszłości
-    # max_litters_per_year = models.PositiveBigIntegerField()
-    # max_breeding_dogs = models.PositiveBigIntegerField()
     def __str__(self):
         return f"{self.name}"
 

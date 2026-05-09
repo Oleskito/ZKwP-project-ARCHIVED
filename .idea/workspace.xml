@@ -5,10 +5,23 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="5c1a64ec-d51f-411b-b4a2-f2d76930b4b5" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/.claudeignore" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard/dashboard_your_profile.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/templates/dashboard/measurement_confirm_delete.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/document_records_test.json" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/Przepisy/update.txt" beforeDir="false" afterPath="$PROJECT_DIR$/Przepisy/update.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/forms.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/forms.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/accounts/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/accounts/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/billing/admin.py" beforeDir="false" afterPath="$PROJECT_DIR$/billing/admin.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/billing/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/billing/models.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/core_config/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/core_config/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docs/DATABASE.md" beforeDir="false" afterPath="$PROJECT_DIR$/docs/DATABASE.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/kennel/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/kennel/views.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/requirements.txt" beforeDir="false" afterPath="$PROJECT_DIR$/requirements.txt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard/kennel_panel_base.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard/kennel_panel_base.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_measurements.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_dog/dashboard_dog_measurements.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_measurements.html" beforeDir="false" afterPath="$PROJECT_DIR$/templates/dashboard_puppy/dashboard_puppy_measurements.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,7 +40,7 @@
     <option name="myCustomStartScript" value="import sys; print('Python %s on %s' % (sys.version, sys.platform))&#10;import django; print('Django %s' % django.get_version())&#10;sys.path.extend([WORKING_DIR_AND_PYTHON_PATHS])&#10;if 'setup' in dir(django): django.setup()&#10;import django_manage_shell; django_manage_shell.run(PROJECT_ROOT)" />
   </component>
   <component name="EmbeddingIndexingInfo">
-    <option name="cachedIndexableFilesCount" value="130" />
+    <option name="cachedIndexableFilesCount" value="135" />
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -97,7 +110,7 @@
     &quot;django.template.preview.state&quot;: &quot;SHOW_EDITOR&quot;,
     &quot;git-widget-placeholder&quot;: &quot;dashboard&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;E:/Projekt ZKwP/templates/dashboard_litter&quot;,
+    &quot;last_opened_file_path&quot;: &quot;E:/Projekt ZKwP/accounts&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -116,6 +129,7 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="E:\Projekt ZKwP\accounts" />
       <recent name="E:\Projekt ZKwP\templates\dashboard_litter" />
       <recent name="E:\Projekt ZKwP" />
     </key>
@@ -236,7 +250,8 @@
       <workItem from="1777396542566" duration="7888000" />
       <workItem from="1777487814967" duration="6000" />
       <workItem from="1778163044723" duration="2156000" />
-      <workItem from="1778174794531" duration="4231000" />
+      <workItem from="1778174794531" duration="8406000" />
+      <workItem from="1778315170747" duration="22683000" />
     </task>
     <servers />
   </component>

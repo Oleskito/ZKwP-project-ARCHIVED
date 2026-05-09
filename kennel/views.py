@@ -41,8 +41,8 @@ def dashboard_dog_view(request):
     sort_by = request.GET.get('sort', 'name_asc')
 
     # Bazy całkowite (do licznika "w tle")
-    total_active_base = Dog.objects.filter(breeder=breeder, is_archived=False)
-    total_archived_base = Dog.objects.filter(breeder=breeder, is_archived=True)
+    total_active_base = Dog.objects.filter(breeder=breeder, is_archived=False).select_related('breed')
+    total_archived_base = Dog.objects.filter(breeder=breeder, is_archived=True).select_related('breed')
 
     # Izolacja - filtrujemy tylko tę bazę, w której jesteśmy
     if active_tab == 'active':
@@ -223,8 +223,8 @@ def dashboard_litter_view(request):
     mating_date_to = request.GET.get('mating_date_to')
     sort_by = request.GET.get('sort', 'date_desc')
 
-    total_active_base = Litter.objects.filter(breeder=breeder).exclude(status=Litter.Status.ARCHIVED)
-    total_archived_base = Litter.objects.filter(breeder=breeder, status=Litter.Status.ARCHIVED)
+    total_active_base = Litter.objects.filter(breeder=breeder).exclude(status=Litter.Status.ARCHIVED).select_related('mother', 'father', 'breed')
+    total_archived_base = Litter.objects.filter(breeder=breeder, status=Litter.Status.ARCHIVED).select_related('mother', 'father', 'breed')
 
     if active_tab == 'active':
         current_qs = total_active_base
@@ -345,7 +345,7 @@ def dashboard_puppy_view(request):
     litter_id = request.GET.get('litter_id')
 
     # 1. BAZY CAŁKOWITE (Tło, bez włączonych filtrów)
-    base_puppies = Puppy.objects.filter(breeder=request.user).select_related('litter')
+    base_puppies = Puppy.objects.filter(breeder=request.user).select_related('litter', 'adult_dog_profile')
 
     active_puppy_statuses = ['available', 'reserved', 'booked', 'staying', '', None]
     inactive_puppy_statuses = ['sold', 'deceased']
@@ -497,9 +497,9 @@ def dog_measurements_view(request, pk):
     if hasattr(dog, 'original_puppy') and dog.original_puppy:
         measurements = Measurement.objects.filter(
             Q(dog=dog) | Q(puppy=dog.original_puppy)
-        ).order_by('-date', '-created_at')
+        ).select_related('dog', 'puppy').order_by('-date', '-created_at')
     else:
-        measurements = Measurement.objects.filter(dog=dog).order_by('-date', '-created_at')
+        measurements = Measurement.objects.filter(dog=dog).select_related('dog').order_by('-date', '-created_at')
 
     if request.method == 'POST':
         form = MeasurementForm(request.POST, request.FILES, dog=dog)
@@ -521,7 +521,7 @@ def dog_measurements_view(request, pk):
 @login_required
 def puppy_measurements_view(request, pk):
     puppy = get_object_or_404(Puppy, pk=pk, breeder=request.user)
-    measurements = Measurement.objects.filter(puppy=puppy).order_by('-date', '-created_at')
+    measurements = Measurement.objects.filter(puppy=puppy).select_related('puppy').order_by('-date', '-created_at')
 
     if request.method == 'POST':
         # TUTAJ ZMIANA: Przekazujemy puppy=puppy do formularza
@@ -543,77 +543,67 @@ def puppy_measurements_view(request, pk):
 
 @login_required
 def measurement_edit_view(request, pk):
-    measurement = get_object_or_404(Measurement, pk=pk)
-
-    if measurement.dog and measurement.dog.breeder != request.user:
+    measurement = get_object_or_404(
+        Measurement.objects.select_related('dog__breeder', 'puppy__breeder', 'puppy__adult_dog_profile'),
+        pk=pk,
+    )
+    owner = measurement.dog or measurement.puppy
+    if owner is None or owner.breeder != request.user:
         messages.error(request, "Brak uprawnień.")
-        return redirect('dashboard_view')
-    if measurement.puppy and measurement.puppy.breeder != request.user:
-        messages.error(request, "Brak uprawnień.")
-        return redirect('dashboard_view')
+        return redirect('dashboard')
 
     if request.method == 'POST':
         form = MeasurementForm(request.POST, request.FILES, instance=measurement)
         if form.is_valid():
             form.save()
             messages.success(request, "Pomyślnie zaktualizowano pomiar.")
-
-            # ZMIANA: Bezpieczne przekierowania
             if measurement.dog:
                 return redirect('dog_measurements', pk=measurement.dog.pk)
-            elif measurement.puppy:
-                # Jeśli to szczeniak, który został już awansowany, wracamy do dorosłego psa
-                if hasattr(measurement.puppy, 'adult_dog_profile') and measurement.puppy.adult_dog_profile:
-                    return redirect('dog_measurements', pk=measurement.puppy.adult_dog_profile.pk)
-                # W przeciwnym razie wracamy do profilu szczeniaka
-                return redirect('puppy_measurements', pk=measurement.puppy.pk)
+            if measurement.puppy.adult_dog_profile:
+                return redirect('dog_measurements', pk=measurement.puppy.adult_dog_profile.pk)
+            return redirect('puppy_measurements', pk=measurement.puppy.pk)
     else:
         form = MeasurementForm(instance=measurement)
 
-    animal_name = measurement.dog.name if measurement.dog else measurement.puppy.name
-    animal_pk = measurement.dog.pk if measurement.dog else measurement.puppy.pk
-    is_dog = True if measurement.dog else False
-
+    animal = measurement.dog or measurement.puppy
     context = {
         'form': form,
-        'animal_name': animal_name,
-        'animal_pk': animal_pk,
-        'is_dog': is_dog,
-        'measurement': measurement
+        'animal_name': animal.name,
+        'animal_pk': animal.pk,
+        'is_dog': measurement.dog is not None,
+        'measurement': measurement,
     }
     return render(request, 'dashboard/measurement_edit.html', context)
 
 
 @login_required
 def measurement_delete_view(request, pk):
-    measurement = get_object_or_404(Measurement, pk=pk)
-
-    if measurement.dog and measurement.dog.breeder != request.user:
+    measurement = get_object_or_404(
+        Measurement.objects.select_related('dog__breeder', 'puppy__breeder', 'puppy__adult_dog_profile'),
+        pk=pk,
+    )
+    owner = measurement.dog or measurement.puppy
+    if owner is None or owner.breeder != request.user:
         messages.error(request, "Brak uprawnień.")
-        return redirect('dashboard_view')
-    if measurement.puppy and measurement.puppy.breeder != request.user:
-        messages.error(request, "Brak uprawnień.")
-        return redirect('dashboard_view')
-
-    # Określanie punktu powrotnego
-    redirect_to_dog = None
-    redirect_to_puppy = None
+        return redirect('dashboard')
 
     if measurement.dog:
-        redirect_to_dog = measurement.dog.pk
-    elif measurement.puppy:
-        if hasattr(measurement.puppy, 'adult_dog_profile') and measurement.puppy.adult_dog_profile:
-            redirect_to_dog = measurement.puppy.adult_dog_profile.pk
-        else:
-            redirect_to_puppy = measurement.puppy.pk
+        back_url_name = 'dog_measurements'
+        back_pk = measurement.dog.pk
+    elif measurement.puppy.adult_dog_profile:
+        back_url_name = 'dog_measurements'
+        back_pk = measurement.puppy.adult_dog_profile.pk
+    else:
+        back_url_name = 'puppy_measurements'
+        back_pk = measurement.puppy.pk
 
     if request.method == 'POST':
         measurement.delete()
         messages.success(request, "Pomyślnie usunięto pomiar.")
+        return redirect(back_url_name, pk=back_pk)
 
-    if redirect_to_dog:
-        return redirect('dog_measurements', pk=redirect_to_dog)
-    elif redirect_to_puppy:
-        return redirect('puppy_measurements', pk=redirect_to_puppy)
-
-    return redirect('dashboard_view')
+    return render(request, 'dashboard/measurement_confirm_delete.html', {
+        'measurement': measurement,
+        'back_url_name': back_url_name,
+        'back_pk': back_pk,
+    })
