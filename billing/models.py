@@ -27,6 +27,10 @@ class SubscriptionPlan(models.Model):
         blank=True, null=True,
         verbose_name="Próg miesięcy dla dostępu do PiT (miesięczny)"
     )
+    tier_weight = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Waga planu (ranking: Start=10, Pro=20, VIP=30)",
+    )
 
     def __str__(self):
         return f"{self.name}"

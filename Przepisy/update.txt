@@ -24,8 +24,19 @@ Dodanie podstrony dla dog i puppy gdzie będzie dokładna analiza wzrostu i wagi
 Dziennik rozwoju czyli podstrony measurements tak aby miały wykresy i wszystkie parametry rozpisane
 POPRAWIENIE WYSWIETLANIA SIĘ ZDJEC AWATAROWYCH
 
+#TODO
+Zastanowić się czy dać możliwość zmiany emaila, jeśli tak to musi być bardzo mocna walidacja np. czy email nie jest już w bazie. Trzeba też wymyślić jak rozegrać to z płatnościami bo z tego co widzę to płatności są przypisane do emaila
+info od gemini:
+Jeśli planujesz umożliwić użytkownikom zmianę adresu e-mail, warto przy takiej operacji dodać krótką funkcję, która zaktualizuje adres również w Stripe:
 
+if user.stripe_customer_id:
+    stripe.Customer.modify(
+        user.stripe_customer_id,
+        email=new_email,
+    )
+Dzięki temu dane na fakturach będą zawsze spójne z tym, co użytkownik widzi w swoim profilu, ale sama logika płatności i "przypięcia" klienta do konta pozostaje bezpieczna bez względu na ten krok.
 
+--------
 
 Jak mogą wyglądać plany subskrybcyjne?
 legenda:

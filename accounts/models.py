@@ -218,37 +218,41 @@ class Breeder(AbstractUser):
         return max(0, int(delta.total_seconds() / 86400))
 
     @property
+    def pit_required_months(self) -> int:
+        if not self.current_plan:
+            return 10
+        name = self.current_plan.name.lower()
+        if 'vip' in name:
+            return 3
+        if 'pro' in name:
+            return 7
+        return 10
+
+    @property
+    def paid_months_last_15(self) -> int:
+        from billing.models import Payment
+        cutoff = timezone.now() - relativedelta(months=15)
+        payments = (
+            self.payments
+            .filter(status=Payment.Status.COMPLETED, payment_date__gte=cutoff)
+            .select_related('plan')
+        )
+        total = 0
+        for p in payments:
+            total += 12 if getattr(p.plan, 'interval', '') == 'yearly' else 1
+        return total
+
+    @property
     def has_pit_access(self) -> bool:
-        plan = self.current_plan
-        if not plan or self.is_continuity_broken:
+        if not self.current_plan or self.is_continuity_broken:
             return False
-        if plan.interval == "yearly":
-            return self.payments.filter(status="completed").exists()
-        if plan.interval == "monthly":
-            if (
-                not self.subscription_activated_at
-                or not plan.pit_access_monthly_threshold
-            ):
-                return False
-            now = timezone.now()
-            months_active = (now.year - self.subscription_activated_at.year) * 12 + (
-                now.month - self.subscription_activated_at.month
-            )
-            return months_active >= plan.pit_access_monthly_threshold
-        return False
+        return self.paid_months_last_15 >= self.pit_required_months
 
     @property
     def pit_access_months_remaining(self) -> int | None:
-        plan = self.current_plan
-        if not plan or plan.interval != "monthly":
+        if not self.current_plan:
             return None
-        if not self.subscription_activated_at or not plan.pit_access_monthly_threshold:
-            return None
-        now = timezone.now()
-        months_active = (now.year - self.subscription_activated_at.year) * 12 + (
-            now.month - self.subscription_activated_at.month
-        )
-        return max(0, plan.pit_access_monthly_threshold - months_active)
+        return max(0, self.pit_required_months - self.paid_months_last_15)
 
     def extend_subscription(self, months: int = 1) -> None:
         now = timezone.now()

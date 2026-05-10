@@ -71,8 +71,8 @@ def register_view(request):
 
                 user = form.save(commit=False)
 
-                plan_name = request.POST.get("plan") or "Start"
-                plan_interval = request.POST.get("interval") or "monthly"
+                plan_name = "Start"
+                plan_interval = "monthly"
 
                 try:
                     plan = SubscriptionPlan.objects.get(
@@ -80,9 +80,7 @@ def register_view(request):
                         interval__iexact=plan_interval,
                     )
                 except SubscriptionPlan.DoesNotExist:
-                    plan = SubscriptionPlan.objects.filter(
-                        name__iexact="Start", interval__iexact="monthly"
-                    ).first()
+                    plan = None
 
                 now = timezone.now()
                 user.current_plan = plan
@@ -94,13 +92,10 @@ def register_view(request):
                 messages.error(request, "Wystąpił błąd podczas tworzenia konta. Spróbuj ponownie.")
                 messages.error(request, f"Szczegóły błędu: {str(e)}")
                 return render(request, "home_pages/register.html", {"form": form})
+            messages.success(request, "Konto utworzone! Możesz się teraz zalogować.")
             return redirect("login")
         else:
-            for field, errors in form.errors.items():
-                for error in errors:
-                    messages.error(request, f"Błąd w polu {field}: {error}")
-            for error in form.non_field_errors():
-                messages.error(request, f"Błąd: {error}")
+            messages.error(request, "Formularz zawiera błędy. Popraw pola zaznaczone na czerwono.")
     else:
         form = BreederRegistrationForm()
 

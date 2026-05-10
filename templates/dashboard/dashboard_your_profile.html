@@ -330,7 +330,9 @@
         </div>
     </div>
 
-    <!-- Panel: Plan subskrypcyjny -->
+</form>
+
+<!-- Panel: Plan subskrypcyjny -->
     <div id="panel-plan" class="hidden">
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
             <div class="px-6 pt-5 pb-4">
@@ -405,6 +407,14 @@
                     {% else %}
                         <span class="text-gray-400">—</span>
                     {% endif %}
+                </span>
+            </div>
+
+            <div class="flex items-center px-6 py-4">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest w-44 shrink-0">Postęp PiT</span>
+                <span class="text-sm text-gray-700">
+                    Masz <b>{{ user.paid_months_last_15 }}</b> z <b>{{ user.pit_required_months }}</b>
+                    opłaconych miesięcy (w ciągu ostatnich 15 mies.)
                 </span>
             </div>
 
@@ -523,12 +533,11 @@
            class="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-colors">
             ANULUJ
         </a>
-        <button type="submit"
+        <button type="submit" form="profile-form"
                 class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
             ZAPISZ
         </button>
     </div>
-</form>
 
 <script>
 const profileTabs = ['dane', 'hodowla', 'plan', 'platnosci'];
