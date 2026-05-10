@@ -69,8 +69,18 @@ class Payment(models.Model):
         verbose_name="Status płatności",
     )
 
-    # W przyszłości dodać:
-    # invoice_pdf = . . .
+    stripe_checkout_session_id = models.CharField(
+        max_length=200,
+        blank=True,
+        default="",
+        verbose_name="ID sesji Stripe",
+    )
+    invoice_url = models.URLField(
+        max_length=500,
+        blank=True,
+        default="",
+        verbose_name="Link do faktury",
+    )
 
     def save(self, *args, **kwargs):
         # Jeśli to nowa płatność i nie podaliśmy kwoty ręcznie

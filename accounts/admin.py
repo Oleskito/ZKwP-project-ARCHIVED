@@ -32,7 +32,7 @@ class BreederAdmin(UserAdmin):
                 )
             },
         ),
-        ("Subskrypcja", {"fields": ("subscription_valid_until", "subscription_activated_at", "current_plan")}),
+        ("Subskrypcja", {"fields": ("subscription_valid_until", "subscription_activated_at", "current_plan", "stripe_customer_id", "stripe_subscription_id")}),
     )
 
     add_fieldsets = (

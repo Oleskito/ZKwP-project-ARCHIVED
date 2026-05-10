@@ -411,10 +411,10 @@
             <div class="flex items-center px-6 py-4">
                 <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest w-44 shrink-0">Akcje</span>
                 <div class="flex items-center gap-3">
-                    <button type="button"
-                            class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
+                    <a href="{% url 'price_list' %}"
+                       class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
                         Zmień plan
-                    </button>
+                    </a>
                 </div>
             </div>
         </div>
@@ -422,6 +422,43 @@
 
     <!-- Panel: Płatności -->
     <div id="panel-platnosci" class="hidden">
+
+        {% if user.current_plan %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Zarządzanie subskrypcją</p>
+            </div>
+            <div class="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">Opłać nadchodzący miesiąc (BLIK / Przelewy24)</p>
+                    <p class="text-xs text-gray-500 mt-1">Jednorazowa płatność, która wydłuży Twoją subskrypcję o kolejny okres.</p>
+                </div>
+                <form method="post" action="{% url 'create_checkout_session' %}" class="shrink-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="price_id" value="{{ current_plan_price_id }}">
+                    <input type="hidden" name="checkout_type" value="topup">
+                    <button type="submit"
+                            class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
+                        Opłać nadchodzący miesiąc
+                    </button>
+                </form>
+            </div>
+            <div class="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">Zarządzaj kartą / Subskrypcją</p>
+                    <p class="text-xs text-gray-500 mt-1">Zmień kartę, anuluj subskrypcję lub pobierz faktury przez portal Stripe.</p>
+                </div>
+                <form method="post" action="{% url 'billing_portal' %}" class="shrink-0">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-gray-50 transition-colors whitespace-nowrap">
+                        Portal Stripe
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
         <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
             <div class="px-6 pt-5 pb-4">
                 <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Historia płatności</p>
@@ -434,6 +471,7 @@
                         <th class="px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Kwota</th>
                         <th class="px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Data</th>
                         <th class="px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Status</th>
+                        <th class="px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Faktura</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-50">
@@ -453,6 +491,19 @@
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-wider">Anulowana</span>
                             {% elif payment.status == 'refunded' %}
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wider">Zwrócona</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4">
+                            {% if payment.status == 'completed' and payment.invoice_url %}
+                            <a href="{{ payment.invoice_url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg transition-colors uppercase tracking-wide">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Pobierz
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-gray-300">—</span>
                             {% endif %}
                         </td>
                     </tr>

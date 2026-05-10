@@ -1,10 +1,8 @@
-from dateutil.relativedelta import relativedelta
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
-from django.utils import timezone
 
 from .models import Breeder
 
@@ -18,12 +16,6 @@ class BreederRegistrationForm(forms.ModelForm):
         widget=forms.PasswordInput(attrs={'placeholder': '********'}),
         label="Powtórz hasło"
     )
-    plan = forms.ModelChoiceField(queryset=None, label="Plan subskrypcji", empty_label=None)
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        from billing.models import SubscriptionPlan
-        self.fields["plan"].queryset = SubscriptionPlan.objects.all()
 
     class Meta:
         model = get_user_model()
@@ -51,10 +43,6 @@ class BreederRegistrationForm(forms.ModelForm):
     def save(self, commit=True):
         user = super().save(commit=False)
         user.set_password(self.cleaned_data["password"])
-        now = timezone.now()
-        user.current_plan = self.cleaned_data["plan"]
-        user.subscription_activated_at = now
-        user.subscription_valid_until = now + relativedelta(months=2)
         if commit:
             user.save()
         return user

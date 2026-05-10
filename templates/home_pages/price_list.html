@@ -28,64 +28,124 @@
 
         <div class="isolate mx-auto  grid max-w-md grid-cols-1 gap-y-20 mb-35 lg:mx-0 lg:max-w-none lg:grid-cols-3 lg:gap-x-12">
 
+            <!-- Plan: Start -->
             <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-white shadow-sm">
                 <h3 class="text-3xl font-bold text-gray-900">Start</h3>
                 <p class="mt-4 text-base text-gray-700 min-h-12">Dla małych, domowych hodowli.</p>
                 <p class="mt-6 flex items-baseline gap-x-1">
-                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="49 zł" data-yearly="490 zł">49 zł</span>
+                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="39 zł" data-yearly="390 zł">39 zł</span>
                     <span class="text-sm font-semibold text-gray-700 price-period">/ msc</span>
                 </p>
-                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 40,83 zł / msc!</p>
+                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 32,50 zł / msc!</p>
 
-                <a href="#" class="mt-6 block rounded-md py-2 px-3 text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-all">Wypróbuj za darmo</a>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'create_checkout_session' %}"
+                      class="plan-form"
+                      data-plan-name="Start"
+                      data-monthly-price="price_1TVV2RDkxHlGZirdq3U1eYle"
+                      data-yearly-price="price_1TVV3TDkxHlGZirdKl85mcw9">
+                    {% csrf_token %}
+                    <input type="hidden" name="price_id" class="price-id-input" value="price_1TVV2RDkxHlGZirdq3U1eYle">
+                    <button type="submit" class="plan-btn mt-6 block w-full rounded-md py-2 px-3 text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-all">
+                        Wybierz ten plan
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'register' %}?plan=start&interval=monthly"
+                   class="plan-link mt-6 block rounded-md py-2 px-3 text-center text-sm font-bold text-indigo-700 hover:bg-indigo-100 transition-all"
+                   data-plan="start">
+                    Wypróbuj za darmo
+                </a>
+                {% endif %}
 
                 <ul class="mt-8 space-y-4 text-base text-gray-700 border-t pt-6">
                     <li class="flex items-center gap-x-3">Do <b>5</b> aktywnych psów</li>
                     <li class="flex items-center gap-x-3">Do <b>50</b> psów archiwalnych</li>
                     <li class="flex items-center gap-x-3">Do <span class="font-bold">2</span> miotów rocznie</li>
+                    <li class="flex items-center gap-x-3">Do <span class="font-bold">5 GB</span> pamięci na dane</li>
                     <li class="flex items-center gap-x-3 pit-row" data-monthly="Generator PIT (po 6 msc)" data-yearly="Generator PIT (Dostęp natychmiast!)">
                         <span class="pit-text-content text-indigo-600 font-bold">Generator PIT (po 6 msc)</span>
                     </li>
                 </ul>
             </div>
 
+            <!-- Plan: Pro -->
             <div class="rounded-3xl p-8 ring-2 ring-indigo-600 bg-white shadow-xl relative scale-105 z-10">
                 <span class="absolute -top-4 left-1/2 -translate-x-1/2 bg-indigo-600 text-white text-sm font-bold py-1 px-4 rounded-full">REKOMENDOWANY</span>
                 <h3 class="text-3xl font-bold text-indigo-600">Pro</h3>
                 <p class="mt-4 text-base text-gray-70000 min-h-12">Dla rozwijających się pasjonatów.</p>
                 <p class="mt-6 flex items-baseline gap-x-1">
-                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="89 zł" data-yearly="890 zł">89 zł</span>
+                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="79 zł" data-yearly="790 zł">79 zł</span>
                     <span class="text-sm font-semibold text-gray-700 price-period">/ msc</span>
                 </p>
-                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 74,16 zł / msc!</p>
+                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 65,83 zł / msc!</p>
 
-                <a href="#" class="mt-6 block rounded-md py-2.5 px-3 text-center text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all">Wypróbuj za darmo</a>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'create_checkout_session' %}"
+                      class="plan-form"
+                      data-plan-name="Pro"
+                      data-monthly-price="price_1TVV4bDkxHlGZirdYAC5qNZo"
+                      data-yearly-price="price_1TVV55DkxHlGZirduUCYUoNF">
+                    {% csrf_token %}
+                    <input type="hidden" name="price_id" class="price-id-input" value="price_1TVV4bDkxHlGZirdYAC5qNZo">
+                    <button type="submit" class="plan-btn mt-6 block w-full rounded-md py-2.5 px-3 text-center text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all">
+                        Wybierz ten plan
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'register' %}?plan=pro&interval=monthly"
+                   class="plan-link mt-6 block rounded-md py-2.5 px-3 text-center text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md transition-all"
+                   data-plan="pro">
+                    Wypróbuj za darmo
+                </a>
+                {% endif %}
 
                 <ul class="mt-8 space-y-4 text-base text-gray-700 border-t pt-6">
                     <li class="flex items-center gap-x-3">Do <b>12</b> aktywnych psów</li>
                     <li class="flex items-center gap-x-3">Do <b>500</b> psów archiwalnych</li>
                     <li class="flex items-center gap-x-3">Do <span class="font-bold">6</span> miotów rocznie</li>
+                    <li class="flex items-center gap-x-3">Do <span class="font-bold">15 GB</span> pamięci na dane</li>
                     <li class="flex items-center gap-x-3 pit-row" data-monthly="Generator PIT (po 4 msc)" data-yearly="Generator PIT (Dostęp natychmiast!)">
                         <span class="pit-text-content text-indigo-600 font-bold">Generator PIT (po 4 msc)</span>
                     </li>
                 </ul>
             </div>
 
+            <!-- Plan: VIP -->
             <div class="rounded-3xl p-8 ring-1 ring-gray-200 bg-white shadow-sm">
                 <h3 class="text-3xl font-bold text-gray-900">VIP</h3>
                 <p class="mt-4 text-base text-gray-700 min-h-12">Dla profesjonalnych hodowli.</p>
                 <p class="mt-6 flex items-baseline gap-x-1">
-                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="169 zł" data-yearly="1690 zł">169 zł</span>
+                    <span class="text-4xl font-extrabold text-gray-900 price-value" data-monthly="149 zł" data-yearly="1490 zł">149 zł</span>
                     <span class="text-sm font-semibold text-gray-700 price-period">/ msc</span>
                 </p>
-                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 140,83 zł / msc!</p>
+                <p class="save-label hidden text-lg text-green-600 font-bold mt-1">Tylko 124,17 zł / msc!</p>
 
-                <a href="#" class="mt-6 block rounded-md py-2 px-3 text-center text-sm font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all">Wypróbuj za darmo</a>
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'create_checkout_session' %}"
+                      class="plan-form"
+                      data-plan-name="VIP"
+                      data-monthly-price="price_1TVV5vDkxHlGZirdfznDuiBb"
+                      data-yearly-price="price_1TVV6ADkxHlGZirdg3lBLHcr">
+                    {% csrf_token %}
+                    <input type="hidden" name="price_id" class="price-id-input" value="price_1TVV5vDkxHlGZirdfznDuiBb">
+                    <button type="submit" class="plan-btn mt-6 block w-full rounded-md py-2 px-3 text-center text-sm font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all">
+                        Wybierz ten plan
+                    </button>
+                </form>
+                {% else %}
+                <a href="{% url 'register' %}?plan=vip&interval=monthly"
+                   class="plan-link mt-6 block rounded-md py-2 px-3 text-center text-sm font-bold bg-indigo-50 text-indigo-600 hover:bg-indigo-100 transition-all"
+                   data-plan="vip">
+                    Wypróbuj za darmo
+                </a>
+                {% endif %}
 
                 <ul class="mt-8 space-y-4 text-base text-gray-700 border-t pt-6">
                     <li class="flex items-center gap-x-3 font-bold">Bez limitu aktywnych psów</li>
                     <li class="flex items-center gap-x-3 font-bold">Bez limitu psów archiwalnych</li>
                     <li class="flex items-center gap-x-3 font-bold">Bez limitu miotów</li>
+                    <li class="flex items-center gap-x-3">Do <span class="font-bold">50 GB</span> pamięci na dane</li>
                     <li class="flex items-center gap-x-3 pit-row" data-monthly="Generator PIT (po 3 msc)" data-yearly="Generator PIT (Dostęp natychmiast!)">
                         <span class="pit-text-content text-indigo-600 font-bold">Generator PIT (po 3 msc)</span>
                     </li>
@@ -119,9 +179,48 @@
     const saveLabels = document.querySelectorAll('.save-label');
     const pitRows = document.querySelectorAll('.pit-row');
 
+    // Current plan info from Django context
+    const currentPlanName = "{{ user.current_plan.name|default:'' }}";
+    const currentPlanInterval = "{{ user.current_plan.interval|default:'' }}";
+
     let isYearly = false;
 
-    toggleBtn.addEventListener('click', () => {
+    function updateButtonStates() {
+        const interval = isYearly ? 'yearly' : 'monthly';
+
+        // Update authenticated checkout forms
+        document.querySelectorAll('.plan-form').forEach(function(form) {
+            const btn = form.querySelector('.plan-btn');
+            const priceInput = form.querySelector('.price-id-input');
+            if (!btn || !priceInput) return;
+
+            priceInput.value = isYearly ? form.dataset.yearlyPrice : form.dataset.monthlyPrice;
+
+            const isCurrent = currentPlanName !== '' &&
+                form.dataset.planName === currentPlanName &&
+                interval === currentPlanInterval;
+
+            if (isCurrent) {
+                btn.disabled = true;
+                btn.textContent = 'Aktualny';
+                btn.style.opacity = '0.6';
+                btn.style.cursor = 'not-allowed';
+            } else {
+                btn.disabled = false;
+                btn.textContent = 'Wybierz ten plan';
+                btn.style.opacity = '';
+                btn.style.cursor = '';
+            }
+        });
+
+        // Update unauthenticated register links
+        document.querySelectorAll('.plan-link').forEach(function(link) {
+            const plan = link.dataset.plan;
+            link.href = "{% url 'register' %}?plan=" + plan + "&interval=" + interval;
+        });
+    }
+
+    toggleBtn.addEventListener('click', function() {
         isYearly = !isYearly;
 
         // 1. Przełącznik UI
@@ -130,15 +229,15 @@
         toggleBtn.classList.toggle('bg-gray-200');
 
         // 2. Ceny i okresy
-        prices.forEach(p => {
+        prices.forEach(function(p) {
             p.textContent = isYearly ? p.dataset.yearly : p.dataset.monthly;
         });
-        periods.forEach(p => {
+        periods.forEach(function(p) {
             p.textContent = isYearly ? '/ rok' : '/ msc';
         });
 
         // 3. Pokaż/Ukryj "Tylko ... / msc"
-        saveLabels.forEach(s => {
+        saveLabels.forEach(function(s) {
             if (isYearly) {
                 s.classList.remove('hidden');
             } else {
@@ -147,10 +246,16 @@
         });
 
         // 4. Teksty o PIT
-        pitRows.forEach(row => {
+        pitRows.forEach(function(row) {
             const content = row.querySelector('.pit-text-content');
             content.textContent = isYearly ? row.dataset.yearly : row.dataset.monthly;
         });
+
+        // 5. Przyciski planów
+        updateButtonStates();
     });
+
+    // Ustaw stan przycisków przy załadowaniu strony
+    updateButtonStates();
 </script>
 {% endblock %}

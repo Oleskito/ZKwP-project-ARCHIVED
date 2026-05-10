@@ -93,12 +93,16 @@ class Breeder(AbstractUser):
         FROZEN = "frozen", "Zamrożony"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data rejestracji")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data rejestracji"
+    )
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
 
     username = None
     email = models.EmailField(unique=True, verbose_name="Adres email")
-    mfa_verification = models.BooleanField(default=False, verbose_name="Dwuetapowa weryfikacja")
+    mfa_verification = models.BooleanField(
+        default=False, verbose_name="Dwuetapowa weryfikacja"
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["first_name", "last_name"]
@@ -123,14 +127,14 @@ class Breeder(AbstractUser):
         max_length=80, blank=True, verbose_name="Przydomek hodowlany"
     )
 
-    branch = models.CharField(max_length=50, choices=ZKwPBranch.choices, blank=True, null=True) #type:ignore
+    branch = models.CharField(
+        max_length=50, choices=ZKwPBranch.choices, blank=True, null=True
+    )  # type:ignore
     membership_number = models.CharField(
         max_length=30, blank=True, verbose_name="Numer legitymacji ZKwP"
     )
     kennel_registration_number = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name="Numer rejestracji przydomka (np. FCI)"
+        max_length=50, blank=True, verbose_name="Numer rejestracji przydomka (np. FCI)"
     )
 
     # płatności:
@@ -149,31 +153,39 @@ class Breeder(AbstractUser):
         verbose_name="aktualny plan subskrypcji",
     )
     wants_email_notifications = models.BooleanField(
-        default=True,
-        verbose_name="Otrzymuj przypomnienia e-mail"
+        default=True, verbose_name="Otrzymuj przypomnienia e-mail"
     )
 
-    phone_number = models.CharField(max_length=20, blank=True, verbose_name="Nr telefonu")
-    is_verified = models.BooleanField(default = False, verbose_name = "Zweryfikowany")
-    tos_accepted_at = models.DateTimeField(null=True, blank=True, verbose_name="Data akceptacji regulaminu")
+    phone_number = models.CharField(
+        max_length=20, blank=True, verbose_name="Nr telefonu"
+    )
+    is_verified = models.BooleanField(default=False, verbose_name="Zweryfikowany")
+    tos_accepted_at = models.DateTimeField(
+        null=True, blank=True, verbose_name="Data akceptacji regulaminu"
+    )
     kennel_logo = models.ImageField(
-        upload_to='kennel_logos/',
-        null=True,
-        blank=True,
-        verbose_name="Logo hodowli"
+        upload_to="kennel_logos/", null=True, blank=True, verbose_name="Logo hodowli"
     )
     company_name = models.CharField(
-        max_length=150,
-        blank=True,
-        verbose_name="Nazwa firmy"
+        max_length=150, blank=True, verbose_name="Nazwa firmy"
     )
-    nip = models.CharField(
-        max_length=15,
-        blank=True,
-        verbose_name="NIP"
+    nip = models.CharField(max_length=15, blank=True, verbose_name="NIP")
+    notes = models.CharField(
+        max_length=500, blank=True, verbose_name="Notatki np. strona internetowa"
     )
-    notes = models.CharField(max_length=500, blank=True, verbose_name="Notatki np. strona internetowa")
 
+    stripe_customer_id = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="ID klienta Stripe",
+    )
+    stripe_subscription_id = models.CharField(
+        max_length=50,
+        blank=True,
+        default="",
+        verbose_name="ID subskrypcji Stripe",
+    )
 
     @property
     def account_status(self) -> str:
@@ -194,7 +206,9 @@ class Breeder(AbstractUser):
     def is_continuity_broken(self) -> bool:
         if not self.subscription_valid_until:
             return True
-        return (timezone.now() - self.subscription_valid_until).total_seconds() > 7 * 86400
+        return (
+            timezone.now() - self.subscription_valid_until
+        ).total_seconds() > 7 * 86400
 
     @property
     def days_remaining(self) -> int:
@@ -211,10 +225,15 @@ class Breeder(AbstractUser):
         if plan.interval == "yearly":
             return self.payments.filter(status="completed").exists()
         if plan.interval == "monthly":
-            if not self.subscription_activated_at or not plan.pit_access_monthly_threshold:
+            if (
+                not self.subscription_activated_at
+                or not plan.pit_access_monthly_threshold
+            ):
                 return False
             now = timezone.now()
-            months_active = (now.year - self.subscription_activated_at.year) * 12 + (now.month - self.subscription_activated_at.month)
+            months_active = (now.year - self.subscription_activated_at.year) * 12 + (
+                now.month - self.subscription_activated_at.month
+            )
             return months_active >= plan.pit_access_monthly_threshold
         return False
 
@@ -226,7 +245,9 @@ class Breeder(AbstractUser):
         if not self.subscription_activated_at or not plan.pit_access_monthly_threshold:
             return None
         now = timezone.now()
-        months_active = (now.year - self.subscription_activated_at.year) * 12 + (now.month - self.subscription_activated_at.month)
+        months_active = (now.year - self.subscription_activated_at.year) * 12 + (
+            now.month - self.subscription_activated_at.month
+        )
         return max(0, plan.pit_access_monthly_threshold - months_active)
 
     def extend_subscription(self, months: int = 1) -> None:
@@ -236,7 +257,9 @@ class Breeder(AbstractUser):
         else:
             self.subscription_activated_at = now
             self.subscription_valid_until = now + relativedelta(months=months)
-        self.save(update_fields=["subscription_valid_until", "subscription_activated_at"])
+        self.save(
+            update_fields=["subscription_valid_until", "subscription_activated_at"]
+        )
 
     def __str__(self):
         if self.kennel_name:

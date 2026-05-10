@@ -74,12 +74,13 @@ The sole user model (`AUTH_USER_MODEL = "accounts.Breeder"`). The `username` fie
 
 #### `AccountStatus` choices (nested in `Breeder`)
 
-| Value | Label | Condition |
-|-------|-------|-----------|
-| `active` | Aktywny | `now ≤ subscription_valid_until` |
-| `grace_period` | Okres karencji | 0–3 days past expiry |
-| `read_only` | Tylko odczyt | 3–180 days past expiry |
-| `frozen` | Zamrożony | >180 days past expiry, or no subscription |
+| Value          | Label                 | Condition                                          |
+|----------------|-----------------------|----------------------------------------------------|
+| `active`       | Aktywny               | `now ≤ subscription_valid_until`                   |
+| `grace_period` | Okres karencji        | 0–3 days past expiry                               |
+| `read_only`    | Tylko odczyt          | 3–14 days past expiry                              |
+| `frozen`       | Zamrożony             | >14 days - 3 years past expiry, or no subscription |
+| `deleted`      | Permamentnie usunięte | >3 years past expiry, or no subscription           |
 
 ---
 
@@ -323,9 +324,13 @@ A payment record. Both `breeder` and `plan` use `PROTECT` to prevent data loss �
 | `amount` | `DecimalField(10, 2)` | Auto-filled from `plan.price` if not provided on creation |
 | `payment_date` | `DateTimeField` | null/blank |
 | `status` | `CharField` | Choices: `pending`, `completed`, `failed`, `cancelled`, `refunded`; default `"pending"` |
+| `stripe_checkout_session_id` | `CharField(200)` | blank; Stripe `cs_...` session ID recorded on webhook |
+| `invoice_url` | `URLField(500)` | blank; Stripe-hosted invoice URL (`hosted_invoice_url`) fetched during webhook |
 | `created_at` / `updated_at` | `DateTimeField` | |
 
 **`save()` side effect:** If `pk` is None (new record) and `amount` is not set, `amount` is auto-filled from `self.plan.price`.
+
+**Payment creation flow:** `Payment` records are created exclusively from the `checkout.session.completed` Stripe webhook. The webhook handler resolves the `SubscriptionPlan` from the `price_id` stored in the Stripe session `metadata`, retrieves the `hosted_invoice_url` from `stripe.Invoice.retrieve`, and creates the record with `status="completed"`. No `Payment` is created for the 2-month free trial on registration.
 
 ---
 
@@ -376,8 +381,35 @@ Downgrades require the user to **manually reduce their dog/litter counts** to fi
 
 | App | Latest migration |
 |-----|-----------------|
-| `accounts` | `0007_alter_breeder_subscription_valid_until` |
+| `accounts` | `0009_add_stripe_fields_to_breeder` |
 | `kennel` | `0012_remove_dog_adult_dog_profile_and_more` |
-| `billing` | `0002_subscriptionplan_updated_at` |
+| `billing` | `0008_payment_stripe_invoice_fields` |
 
 Always run `python manage.py showmigrations` to verify current state before creating new migrations.
+
+---
+
+## Session Persistence (Remember Me)
+
+Session expiry is controlled per-login in `accounts/views.login_view` based on the "Nie wylogowuj mnie" checkbox submitted with the login form.
+
+| Checkbox state | Behaviour | Django call |
+|----------------|-----------|-------------|
+| Checked | Session cookie persists for 30 days | `request.session.set_expiry(2592000)` |
+| Unchecked | Session expires when the browser closes | `request.session.set_expiry(0)` |
+
+No changes to `settings.py` are required — `SESSION_EXPIRE_AT_BROWSER_CLOSE` is not set globally; the per-session `set_expiry` call takes precedence.
+
+---
+
+## Stripe Payment Methods
+
+The Stripe Checkout Session is configured with the following payment methods for all Polish-market checkouts:
+
+| Method | Stripe type | Notes |
+|--------|-------------|-------|
+| Card | `card` | Visa, Mastercard, etc. |
+| BLIK | `blik` | Polish mobile banking one-time code |
+| Przelewy24 | `p24` | Polish bank transfer aggregator |
+
+The session is also created with `locale="pl"` to force the Stripe Checkout UI into Polish. The `price_id` is stored in session `metadata` so the webhook handler can resolve the `SubscriptionPlan` without an additional API call.
