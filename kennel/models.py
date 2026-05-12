@@ -492,8 +492,12 @@ class MedicalRecord(models.Model):
         auto_choose=True,
         sort=True,
     )
-    # PRZY DODAWANIU CHMURY TRZEBA DODAĆ TE POLE
-    # result_file = models.FileField(upload_to="medical/%Y/", null=True, blank=True)
+    result_file = models.FileField(
+        upload_to="medical/%Y/",
+        null=True,
+        blank=True,
+        verbose_name="Plik z dokumentem (skan, wynik)",
+    )
 
     class Meta:
         verbose_name = "Wpis medyczny"
@@ -530,7 +534,7 @@ class DocumentRecord(models.Model):
     class Category(models.TextChoices):
         PEDIGREE = "pedigree", "Rodowód"
         CONTRACT = "contract", "Umowa"
-        CERTIFICATE = "certificate", "Certyfikat/Dyplom"
+        CERTIFICATE = "certificate", "Certyfikat/Dyplom/Wystawa"
         OTHER = "other", "Inne"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -566,8 +570,7 @@ class DocumentRecord(models.Model):
     )
 
     document_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nazwa dokumentu")
-    # PRZY DODAWANIU CHMURY TRZEBA DODAĆ TE POLE
-    # document_file = models.FileField(upload_to="document/%Y/", null=True, blank=True)
+    document_file = models.FileField(upload_to="document/%Y/", null=True, blank=True, verbose_name="Plik dokumentu")
 
     class Meta:
         verbose_name = "Dokument"

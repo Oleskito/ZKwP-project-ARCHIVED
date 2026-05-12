@@ -1,0 +1,142 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Edytuj dokument - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto py-4 px-4 sm:px-6">
+
+    <div class="mb-6">
+        <h2 class="text-sm font-black tracking-widest text-indigo-600 uppercase">Dokumenty</h2>
+        <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase [word-spacing:4px]">Edytuj dokument</h1>
+        <p class="text-sm text-gray-500 italic">
+            {% if record.dog %}Pies: {{ record.dog }}{% elif record.puppy %}Szczenię: {{ record.puppy }}{% else %}Miot: {{ record.litter }}{% endif %}
+            {% if record.document_name %} — {{ record.document_name }}{% endif %}
+        </p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" class="space-y-6" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+        <div class="p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl shadow-md">
+            <p class="font-black uppercase text-xs mb-2 tracking-widest">Wystąpiły błędy:</p>
+            <ul class="list-disc list-inside text-sm font-medium space-y-1">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                    <li><span class="font-bold">{{ field.label }}:</span> {{ error|striptags }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                Przypisz do zwierzęcia
+            </h3>
+            <p class="text-xs text-gray-500 mb-4 italic">Wypełnij dokładnie jedno z poniższych pól.</p>
+            <div class="grid grid-cols-1 gap-4">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.dog.label }}</label>
+                    {{ form.dog }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.puppy.label }}</label>
+                    {{ form.puppy }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.litter.label }}</label>
+                    {{ form.litter }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                Dane dokumentu
+            </h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.date.label }}</label>
+                    {{ form.date }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.category.label }}</label>
+                    {{ form.category }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.document_name.label }}</label>
+                    {{ form.document_name }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                Plik dokumentu
+            </h3>
+
+            {% if record.document_file %}
+            <div class="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl mb-4">
+                <svg class="w-5 h-5 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-emerald-800 truncate">Aktualny plik: {{ record.document_file.name }}</p>
+                    <a href="{{ record.document_file.url }}" target="_blank" class="text-[10px] text-emerald-600 hover:text-emerald-800 font-bold uppercase tracking-wide transition-colors">Otwórz podgląd</a>
+                </div>
+            </div>
+            {% endif %}
+
+            <label for="{{ form.document_file.id_for_label }}" id="upload-label"
+                   class="flex items-center gap-4 p-4 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer group">
+                <div id="upload-icon-container" class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 group-hover:text-indigo-600 transition-transform shrink-0">
+                    <svg id="upload-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <svg id="success-icon" class="w-5 h-5 hidden text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                </div>
+                <div class="flex-1 overflow-hidden">
+                    <span id="upload-main-text" class="block text-[11px] font-black text-gray-900 uppercase tracking-wider truncate">
+                        {% if record.document_file %}Zamień plik (opcjonalne){% else %}Wgraj plik dokumentu{% endif %}
+                    </span>
+                    <span id="upload-sub-text" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block mt-0.5">PDF, JPG, PNG • Max 10MB</span>
+                </div>
+            </label>
+            <div class="hidden">{{ form.document_file }}</div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-4 mb-10">
+            <a href="{% url 'dashboard_documents' %}" class="flex-1 flex justify-center rounded-xl bg-white border border-gray-200 py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+                Anuluj
+            </a>
+            <button type="submit" class="flex-1 flex justify-center rounded-xl bg-indigo-600 py-3 text-xs font-black text-white shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.01] uppercase tracking-widest">
+                Zapisz zmiany
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+const fileInput = document.getElementById('{{ form.document_file.id_for_label }}');
+fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (file) {
+        document.getElementById('upload-main-text').textContent = file.name;
+        document.getElementById('upload-sub-text').textContent = (file.size / 1024 / 1024).toFixed(2) + ' MB';
+        document.getElementById('upload-icon').classList.add('hidden');
+        document.getElementById('success-icon').classList.remove('hidden');
+        document.getElementById('upload-label').classList.add('border-emerald-400', 'bg-emerald-50/50');
+        document.getElementById('upload-label').classList.remove('border-gray-200', 'bg-gray-50');
+    }
+});
+</script>
+{% endblock %}

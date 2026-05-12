@@ -1,7 +1,6 @@
 from django import forms
-from .models import Dog, Litter, Puppy, Measurement
+from .models import Dog, Litter, Puppy, Measurement, MedicalRecord, TreatmentResult, DocumentRecord
 from django.utils import timezone
-from datetime import timedelta
 
 
 class DogForm(forms.ModelForm):
@@ -443,3 +442,108 @@ class MeasurementForm(forms.ModelForm):
         for field_name, field in self.fields.items():
             current_class = field.widget.attrs.get('class', '')
             field.widget.attrs['class'] = f"{current_class} {input_classes}".strip()
+
+
+class MedicalRecordForm(forms.ModelForm):
+    result = forms.ModelChoiceField(
+        queryset=TreatmentResult.objects.select_related('treatment_type').order_by('treatment_type__name', 'name'),
+        empty_label="Najpierw wybierz typ badania",
+        label="Wynik badania",
+        required=True,
+    )
+
+    class Meta:
+        model = MedicalRecord
+        fields = ['dog', 'puppy', 'litter', 'date', 'treatment_type', 'result', 'result_file']
+        widgets = {
+            'date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        input_classes = (
+            "block w-full appearance-none rounded-xl border border-gray-300 px-4 py-2 "
+            "text-sm text-gray-900 shadow-sm focus:border-indigo-600 focus:ring-indigo-600 "
+            "transition-all placeholder:text-gray-400 bg-white"
+        )
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.FileInput):
+                field.widget.attrs.update({'class': input_classes})
+
+        if self.user:
+            self.fields['dog'].queryset = Dog.objects.filter(breeder=self.user).order_by('name')
+            self.fields['puppy'].queryset = Puppy.objects.filter(breeder=self.user).order_by('name')
+            self.fields['litter'].queryset = Litter.objects.filter(breeder=self.user).order_by('-created_at')
+
+        self.fields['dog'].required = False
+        self.fields['puppy'].required = False
+        self.fields['litter'].required = False
+        self.fields['date'].required = True
+
+    def clean(self):
+        cleaned_data = super().clean()
+        dog = cleaned_data.get('dog')
+        puppy = cleaned_data.get('puppy')
+        litter = cleaned_data.get('litter')
+
+        selected = sum(bool(s) for s in [dog, puppy, litter])
+        if selected == 0:
+            raise forms.ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
+        if selected > 1:
+            raise forms.ValidationError("Wpis może być przypisany tylko do jednego źródła naraz.")
+
+        treatment_type = cleaned_data.get('treatment_type')
+        result = cleaned_data.get('result')
+        if treatment_type and result and result.treatment_type != treatment_type:
+            self.add_error('result', "Wybrany wynik nie pasuje do wybranego typu badania.")
+
+
+class DocumentRecordForm(forms.ModelForm):
+    class Meta:
+        model = DocumentRecord
+        fields = ['dog', 'puppy', 'litter', 'date', 'category', 'document_name', 'document_file']
+        widgets = {
+            'date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date'}),
+        }
+
+    def __init__(self, *args: object, **kwargs: object) -> None:
+        self.user = kwargs.pop('user', None)
+        super().__init__(*args, **kwargs)
+
+        input_classes = (
+            "block w-full appearance-none rounded-xl border border-gray-300 px-4 py-2 "
+            "text-sm text-gray-900 shadow-sm focus:border-indigo-600 focus:ring-indigo-600 "
+            "transition-all placeholder:text-gray-400 bg-white"
+        )
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.FileInput):
+                field.widget.attrs.update({'class': input_classes})
+
+        if self.user:
+            self.fields['dog'].queryset = Dog.objects.filter(breeder=self.user).order_by('name')
+            self.fields['puppy'].queryset = Puppy.objects.filter(breeder=self.user).order_by('name')
+            self.fields['litter'].queryset = Litter.objects.filter(breeder=self.user).order_by('-created_at')
+
+        self.fields['dog'].required = False
+        self.fields['puppy'].required = False
+        self.fields['litter'].required = False
+        self.fields['date'].required = False
+        self.fields['document_name'].required = False
+        self.fields['document_file'].required = False
+
+    def clean(self) -> dict:
+        cleaned_data = super().clean()
+        dog = cleaned_data.get('dog')
+        puppy = cleaned_data.get('puppy')
+        litter = cleaned_data.get('litter')
+
+        selected = sum(bool(s) for s in [dog, puppy, litter])
+        if selected == 0:
+            raise forms.ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
+        if selected > 1:
+            raise forms.ValidationError("Dokument może być przypisany tylko do jednego źródła naraz.")
+        return cleaned_data
+
+        return cleaned_data

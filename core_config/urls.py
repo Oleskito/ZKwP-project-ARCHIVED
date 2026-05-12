@@ -117,6 +117,46 @@ urlpatterns = [
         billing_views.create_portal_session_view,
         name="billing_portal",
     ),
+    path(
+        "dashboard/medical/",
+        kennel_views.dashboard_medical_view,
+        name="dashboard_medical",
+    ),
+    path(
+        "dashboard/medical/add/",
+        kennel_views.medical_add_view,
+        name="medical_add",
+    ),
+    path(
+        "dashboard/medical/<uuid:pk>/edit/",
+        kennel_views.medical_edit_view,
+        name="medical_edit",
+    ),
+    path(
+        "dashboard/medical/<uuid:pk>/delete/",
+        kennel_views.medical_delete_view,
+        name="medical_delete",
+    ),
+    path(
+        "dashboard/documents/",
+        kennel_views.dashboard_documents_view,
+        name="dashboard_documents",
+    ),
+    path(
+        "dashboard/documents/add/",
+        kennel_views.document_add_view,
+        name="document_add",
+    ),
+    path(
+        "dashboard/documents/<uuid:pk>/edit/",
+        kennel_views.document_edit_view,
+        name="document_edit",
+    ),
+    path(
+        "dashboard/documents/<uuid:pk>/delete/",
+        kennel_views.document_delete_view,
+        name="document_delete",
+    ),
 ]
 
 if settings.DEBUG:

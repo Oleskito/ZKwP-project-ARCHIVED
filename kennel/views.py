@@ -1,10 +1,11 @@
+import json
+
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render, get_object_or_404
-from .models import Dog, Litter, Puppy, Measurement
+from .models import Dog, Litter, Puppy, Measurement, MedicalRecord, TreatmentType, TreatmentResult, DocumentRecord
 from django.db.models import Q
-from .forms import DogForm, LitterForm, PuppyForm, MeasurementForm
+from .forms import DogForm, LitterForm, PuppyForm, MeasurementForm, MedicalRecordForm, DocumentRecordForm
 from django.contrib import messages
-from django.utils.dateparse import parse_date
 from django.utils import timezone
 
 @login_required
@@ -606,4 +607,217 @@ def measurement_delete_view(request, pk):
         'measurement': measurement,
         'back_url_name': back_url_name,
         'back_pk': back_pk,
+    })
+
+
+def _breeder_medical_qs(user):
+    return MedicalRecord.objects.filter(
+        Q(dog__breeder=user) | Q(puppy__breeder=user) | Q(litter__breeder=user)
+    ).select_related('treatment_type', 'result', 'dog', 'puppy', 'litter')
+
+
+@login_required
+def dashboard_medical_view(request):
+    breeder = request.user
+    q = request.GET.get('q', '').strip()
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+    selected_type_ids = request.GET.getlist('treatment_type')
+    sort_by = request.GET.get('sort', 'newest')
+
+    records = _breeder_medical_qs(breeder)
+
+    if q:
+        records = records.filter(
+            Q(dog__name__icontains=q) |
+            Q(puppy__name__icontains=q) |
+            Q(litter__litter_letter__icontains=q)
+        )
+    if date_from:
+        records = records.filter(date__gte=date_from)
+    if date_to:
+        records = records.filter(date__lte=date_to)
+    if selected_type_ids:
+        records = records.filter(treatment_type__id__in=selected_type_ids)
+
+    records = records.order_by('date' if sort_by == 'oldest' else '-date')
+
+    available_types = TreatmentType.objects.filter(
+        Q(medicalrecord__dog__breeder=breeder) |
+        Q(medicalrecord__puppy__breeder=breeder) |
+        Q(medicalrecord__litter__breeder=breeder)
+    ).distinct().order_by('name')
+
+    return render(request, 'dashboard_medical/dashboard_medical.html', {
+        'records': records,
+        'current_q': q,
+        'current_date_from': date_from,
+        'current_date_to': date_to,
+        'current_type_ids': selected_type_ids,
+        'current_sort': sort_by,
+        'available_types': available_types,
+    })
+
+
+@login_required
+def medical_add_view(request):
+    all_results = list(
+        TreatmentResult.objects.select_related('treatment_type').values(
+            'id', 'name', 'treatment_type_id'
+        )
+    )
+    results_json = json.dumps([
+        {'id': str(r['id']), 'name': r['name'], 'type_id': str(r['treatment_type_id'])}
+        for r in all_results
+    ])
+
+    if request.method == 'POST':
+        form = MedicalRecordForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie dodano wpis medyczny!")
+            return redirect('dashboard_medical')
+    else:
+        form = MedicalRecordForm(user=request.user)
+
+    return render(request, 'dashboard_medical/dashboard_medical_add.html', {
+        'form': form,
+        'results_json': results_json,
+    })
+
+
+@login_required
+def medical_edit_view(request, pk):
+    record = get_object_or_404(_breeder_medical_qs(request.user), pk=pk)
+
+    all_results = list(
+        TreatmentResult.objects.select_related('treatment_type').values(
+            'id', 'name', 'treatment_type_id'
+        )
+    )
+    results_json = json.dumps([
+        {'id': str(r['id']), 'name': r['name'], 'type_id': str(r['treatment_type_id'])}
+        for r in all_results
+    ])
+
+    if request.method == 'POST':
+        form = MedicalRecordForm(request.POST, request.FILES, instance=record, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie zaktualizowano wpis medyczny!")
+            return redirect('dashboard_medical')
+    else:
+        form = MedicalRecordForm(instance=record, user=request.user)
+
+    return render(request, 'dashboard_medical/dashboard_medical_edit.html', {
+        'form': form,
+        'record': record,
+        'results_json': results_json,
+    })
+
+
+@login_required
+def medical_delete_view(request, pk):
+    record = get_object_or_404(_breeder_medical_qs(request.user), pk=pk)
+
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, "Pomyślnie usunięto wpis medyczny.")
+        return redirect('dashboard_medical')
+
+    return render(request, 'dashboard_medical/dashboard_medical_confirm_delete.html', {
+        'record': record,
+    })
+
+
+def _breeder_document_qs(user: object) -> object:
+    return DocumentRecord.objects.filter(
+        Q(dog__breeder=user) | Q(puppy__breeder=user) | Q(litter__breeder=user)
+    ).select_related('dog', 'puppy', 'litter')
+
+
+@login_required
+def dashboard_documents_view(request):
+    breeder = request.user
+    q = request.GET.get('q', '').strip()
+    date_from = request.GET.get('date_from', '').strip()
+    date_to = request.GET.get('date_to', '').strip()
+    selected_categories = request.GET.getlist('category')
+    sort_by = request.GET.get('sort', 'newest')
+
+    records = _breeder_document_qs(breeder)
+
+    if q:
+        records = records.filter(
+            Q(dog__name__icontains=q) |
+            Q(puppy__name__icontains=q) |
+            Q(litter__litter_letter__icontains=q) |
+            Q(document_name__icontains=q)
+        )
+    if date_from:
+        records = records.filter(date__gte=date_from)
+    if date_to:
+        records = records.filter(date__lte=date_to)
+    if selected_categories:
+        records = records.filter(category__in=selected_categories)
+
+    records = records.order_by('date' if sort_by == 'oldest' else '-date', '-created_at')
+
+    return render(request, 'dashboard_documents/dashboard_documents.html', {
+        'records': records,
+        'current_q': q,
+        'current_date_from': date_from,
+        'current_date_to': date_to,
+        'current_categories': selected_categories,
+        'current_sort': sort_by,
+        'category_choices': DocumentRecord.Category.choices,
+    })
+
+
+@login_required
+def document_add_view(request):
+    if request.method == 'POST':
+        form = DocumentRecordForm(request.POST, request.FILES, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie dodano dokument!")
+            return redirect('dashboard_documents')
+    else:
+        form = DocumentRecordForm(user=request.user)
+
+    return render(request, 'dashboard_documents/dashboard_documents_add.html', {
+        'form': form,
+    })
+
+
+@login_required
+def document_edit_view(request, pk):
+    record = get_object_or_404(_breeder_document_qs(request.user), pk=pk)
+
+    if request.method == 'POST':
+        form = DocumentRecordForm(request.POST, request.FILES, instance=record, user=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Pomyślnie zaktualizowano dokument!")
+            return redirect('dashboard_documents')
+    else:
+        form = DocumentRecordForm(instance=record, user=request.user)
+
+    return render(request, 'dashboard_documents/dashboard_documents_edit.html', {
+        'form': form,
+        'record': record,
+    })
+
+
+@login_required
+def document_delete_view(request, pk):
+    record = get_object_or_404(_breeder_document_qs(request.user), pk=pk)
+
+    if request.method == 'POST':
+        record.delete()
+        messages.success(request, "Pomyślnie usunięto dokument.")
+        return redirect('dashboard_documents')
+
+    return render(request, 'dashboard_documents/dashboard_documents_confirm_delete.html', {
+        'record': record,
     })

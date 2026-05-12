@@ -1,7 +1,9 @@
 import uuid
 
+import encrypted_model_fields.fields as encrypted_fields
 from dateutil.relativedelta import relativedelta
 from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils import timezone
 from django_countries.fields import CountryField
@@ -169,7 +171,16 @@ class Breeder(AbstractUser):
     company_name = models.CharField(
         max_length=150, blank=True, verbose_name="Nazwa firmy"
     )
-    nip = models.CharField(max_length=15, blank=True, verbose_name="NIP")
+    nip = encrypted_fields.EncryptedCharField(max_length=15, blank=True, verbose_name="NIP")
+    pesel = encrypted_fields.EncryptedCharField(
+        max_length=11,
+        blank=True,
+        null=True,
+        verbose_name="PESEL",
+        validators=[RegexValidator(r"^\d{11}$", "PESEL musi składać się z dokładnie 11 cyfr.")],
+    )
+    tax_office = models.CharField(max_length=255, blank=True, null=True, verbose_name="Urząd skarbowy")
+    birth_date = models.DateField(null=True, blank=True, verbose_name="Data urodzenia")
     notes = models.CharField(
         max_length=500, blank=True, verbose_name="Notatki np. strona internetowa"
     )

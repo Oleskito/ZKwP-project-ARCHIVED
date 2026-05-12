@@ -1,5 +1,7 @@
 import json
 import logging
+import re
+from datetime import date
 
 from dateutil.relativedelta import relativedelta
 from django.contrib import messages
@@ -129,10 +131,43 @@ def your_profile_view(request) -> HttpResponse:
             "region",
             "postal_code",
             "country",
+            "tax_office",
         ):
             if field in request.POST:
                 setattr(user, field, request.POST[field])
+
+        if "pesel" in request.POST:
+            pesel_value = request.POST["pesel"].strip()
+            if pesel_value and not re.match(r"^\d{11}$", pesel_value):
+                messages.error(request, "PESEL musi składać się z dokładnie 11 cyfr.")
+                return redirect("your_profile")
+            user.pesel = pesel_value or None
+
+        if "birth_date" in request.POST:
+            birth_date_value = request.POST["birth_date"]
+            if birth_date_value:
+                try:
+                    user.birth_date = date.fromisoformat(birth_date_value)
+                except ValueError:
+                    messages.error(request, "Nieprawidłowy format daty urodzenia.")
+                    return redirect("your_profile")
+            else:
+                user.birth_date = None
+
         user.save()
+        if user.stripe_customer_id:
+            try:
+                import stripe
+                # Nadpisujemy adres e-mail w obiekcie Customer w Stripe
+                stripe.Customer.modify(
+                    user.stripe_customer_id,
+                    email=user.email,
+                )
+            except Exception as e:
+                # Rejestrujemy błąd w logach, ale NIE przerywamy działania aplikacji.
+                # Dzięki temu, nawet jeśli Stripe ma awarię, hodowca i tak zapisze profil.
+                logging.getLogger(__name__).warning("Błąd aktualizacji e-maila w Stripe dla usera %s: %s", user.id,
+                                                    str(e))
         messages.success(request, "Dane zostały zaktualizowane.")
         return redirect("your_profile")
 
@@ -168,6 +203,8 @@ def reveal_sensitive_data_view(request) -> JsonResponse:
     return JsonResponse(
         {
             "nip": user.nip or "—",
+            "pesel": user.pesel or "—",
+            "tax_office": user.tax_office or "—",
             "address_line_one": user.address_line_one or "—",
             "address_line_two": user.address_line_two or "—",
             "city": user.city or "—",
