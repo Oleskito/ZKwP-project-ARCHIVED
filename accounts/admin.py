@@ -32,14 +32,28 @@ class BreederAdmin(UserAdmin):
                 )
             },
         ),
-        ("Subskrypcja", {"fields": ("subscription_valid_until",)}),
+        (
+            "Subskrypcja",
+            {
+                "fields": (
+                    "subscription_valid_until",
+                    "subscription_activated_at",
+                    "current_plan",
+                    "stripe_customer_id",
+                    "stripe_subscription_id",
+                )
+            },
+        ),
     )
 
     add_fieldsets = (
-        (None, {
-            "classes": ("wide",),
-            "fields": ("email", "password", "first_name", "last_name"),
-        }),
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": ("email", "password", "first_name", "last_name"),
+            },
+        ),
     )
 
     # ZMIANA: Usunąłem save_model! Nie jest już potrzebne i nie zepsuje hasła.

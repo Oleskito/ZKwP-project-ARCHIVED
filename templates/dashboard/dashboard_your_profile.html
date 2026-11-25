@@ -1,0 +1,704 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Twój profil - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-8">Twój profil</h1>
+
+<form id="profile-form" method="post" action="{% url 'your_profile' %}">
+    {% csrf_token %}
+
+    <div class="flex gap-2 sm:gap-6 border-b border-gray-200 mb-8 overflow-x-auto pb-px -mx-1 px-1">
+        <button type="button" id="btn-dane" onclick="switchTab('dane')"
+                class="pb-3 text-xs sm:text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider transition-all whitespace-nowrap shrink-0">
+            Dane osobowe
+        </button>
+        <button type="button" id="btn-hodowla" onclick="switchTab('hodowla')"
+                class="pb-3 text-xs sm:text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all whitespace-nowrap shrink-0">
+            Hodowla
+        </button>
+        <button type="button" id="btn-plan" onclick="switchTab('plan')"
+                class="pb-3 text-xs sm:text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all whitespace-nowrap shrink-0">
+            Plan subskrypcyjny
+        </button>
+        <button type="button" id="btn-platnosci" onclick="switchTab('platnosci')"
+                class="pb-3 text-xs sm:text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all whitespace-nowrap shrink-0">
+            Płatności
+        </button>
+    </div>
+
+    <!-- Panel: Dane osobowe -->
+    <div id="panel-dane">
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Dane kontaktowe</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Imię</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-firstname" class="text-sm text-gray-900 font-medium">{{ user.first_name|default:"—" }}</span>
+                    <input id="inp-firstname" name="first_name" type="text" value="{{ user.first_name }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-firstname" onclick="enableEdit('firstname')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Nazwisko</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-lastname" class="text-sm text-gray-900 font-medium">{{ user.last_name|default:"—" }}</span>
+                    <input id="inp-lastname" name="last_name" type="text" value="{{ user.last_name }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-lastname" onclick="enableEdit('lastname')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Email</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0 flex-wrap">
+                    <span id="val-email" class="text-sm text-gray-900 font-medium">{{ user.email }}</span>
+                    {% if user.is_verified %}
+                    <span id="badge-email" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-green-50 text-green-700 text-[10px] font-black border border-green-200 uppercase tracking-wider shrink-0">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                        Zweryfikowany
+                    </span>
+                    {% else %}
+                    <span id="badge-email" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-600 text-[10px] font-black border border-red-200 uppercase tracking-wider shrink-0">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"/></svg>
+                        Niezweryfikowany
+                    </span>
+                    {% endif %}
+                    <input id="inp-email" name="email" type="email" value="{{ user.email }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-email" onclick="enableEdit('email')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Nr telefonu</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-phone" class="text-sm text-gray-900 font-medium">{{ user.phone_number|default:"—" }}</span>
+                    <input id="inp-phone" name="phone_number" type="tel" value="{{ user.phone_number }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-phone" onclick="enableEdit('phone')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Data urodzenia</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-birth-date" class="text-sm text-gray-900 font-medium">{{ user.birth_date|date:"d.m.Y"|default:"—" }}</span>
+                    <input id="inp-birth-date" name="birth_date" type="date" value="{{ user.birth_date|date:'Y-m-d'|default:'' }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-birth-date" onclick="enableEdit('birth-date')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Dane adresowe</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Ulica i nr domu</span>
+
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-address1" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-address1" name="address_line_one" type="text" value="{{ user.address_line_one }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-address1" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-address1" onclick="enableEdit('address1')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Nr mieszkania</span>
+
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-address2" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-address2" name="address_line_two" type="text" value="{{ user.address_line_two }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-address2" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-address2" onclick="enableEdit('address2')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Miasto</span>
+
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-city" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-city" name="city" type="text" value="{{ user.city }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-city" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-city" onclick="enableEdit('city')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Województwo</span>
+
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-region" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-region" name="region" type="text" value="{{ user.region }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-region" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-region" onclick="enableEdit('region')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Kod pocztowy</span>
+
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-postal" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-postal" name="postal_code" type="text" value="{{ user.postal_code }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-postal" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-postal" onclick="enableEdit('postal')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Kraj</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-country" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-country" name="country" type="text" value="{{ user.country }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-country" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-country" onclick="enableEdit('country')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Dane do generatora PIT</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">NIP</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-nip" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-nip" name="nip" type="text" value="{{ user.nip }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-nip" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-nip" onclick="enableEdit('nip')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Urząd skarbowy</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-tax-office" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-tax-office" name="tax_office" type="text" value="{{ user.tax_office|default:'' }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+
+                    <button type="button" id="btn-reveal-tax-office" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-tax-office" onclick="enableEdit('tax-office')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">PESEL</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-pesel" class="text-sm font-medium text-gray-400 italic tracking-widest">***</span>
+
+                    <input id="inp-pesel" name="pesel" type="text" value="{{ user.pesel|default:'' }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                           maxlength="11" pattern="\d{11}">
+
+                    <button type="button" id="btn-reveal-pesel" onclick="revealSensitive()" title="Pokaż dane wrażliwe"
+                            class="btn-reveal-sensitive ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+
+                    <button type="button" id="btn-edit-pesel" onclick="enableEdit('pesel')" title="Edytuj"
+                            class="hidden ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Bezpieczeństwo</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-start px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0 sm:mt-0.5">Hasło</span>
+                <div>
+                    <p class="text-sm text-gray-900 font-medium tracking-widest">••••••••</p>
+                    <a href="#" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold mt-1 inline-block transition-colors">Zmień hasło</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel: Hodowla -->
+    <div id="panel-hodowla" class="hidden">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Dane hodowli</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Przydomek</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-kennel-name" class="text-sm text-gray-900 font-medium">{{ user.kennel_name|default:"—" }}</span>
+                    <input id="inp-kennel-name" name="kennel_name" type="text" value="{{ user.kennel_name }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-kennel-name" onclick="enableEdit('kennel-name')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Numer legitymacji</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-membership" class="text-sm text-gray-900 font-medium">{{ user.membership_number|default:"—" }}</span>
+                    <input id="inp-membership" name="membership_number" type="text" value="{{ user.membership_number }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-membership" onclick="enableEdit('membership')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Oddział ZKwP</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-branch" class="text-sm text-gray-900 font-medium">{{ user.branch|default:"—" }}</span>
+                    <select id="inp-branch" name="branch"
+                            class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                        {% for value, text in branch_choices %}
+                            <option value="{{ value }}" {% if user.branch == value %}selected{% endif %}>{{ text }}</option>
+                        {% endfor %}
+                    </select>
+                    <button type="button" id="btn-edit-branch" onclick="enableEdit('branch')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Numer rejestracji</span>
+                <div class="flex-1 flex items-center gap-3 min-w-0">
+                    <span id="val-reg-number" class="text-sm text-gray-900 font-medium">{{ user.kennel_registration_number|default:"—" }}</span>
+                    <input id="inp-reg-number" name="kennel_registration_number" type="text" value="{{ user.kennel_registration_number }}"
+                           class="hidden w-full max-w-sm px-3 py-1.5 border border-indigo-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                    <button type="button" id="btn-edit-reg-number" onclick="enableEdit('reg-number')" title="Edytuj"
+                            class="ml-auto p-1.5 text-gray-300 hover:text-indigo-500 hover:bg-indigo-50 rounded-lg transition-colors shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+<!-- Panel: Plan subskrypcyjny -->
+    <div id="panel-plan" class="hidden">
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Subskrypcja</p>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Stan konta</span>
+                <div>
+                    {% with status=user.account_status %}
+                    {% if status == 'active' %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-green-50 text-green-700 border border-green-200 uppercase tracking-wider">Aktywny</span>
+                    {% elif status == 'grace_period' %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-yellow-50 text-yellow-700 border border-yellow-200 uppercase tracking-wider">Okres karencji</span>
+                    {% elif status == 'read_only' %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200 uppercase tracking-wider">Tylko odczyt</span>
+                    {% else %}
+                    <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-red-50 text-red-600 border border-red-200 uppercase tracking-wider">Zamrożony</span>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Aktualny plan</span>
+                <span class="text-sm text-gray-900 font-medium">{{ user.current_plan.name|default:"—" }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Cena</span>
+                <span class="text-sm text-gray-900 font-medium">{% if user.current_plan %}{{ user.current_plan.price }} zł{% else %}—{% endif %}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Termin zakończenia</span>
+                <span class="text-sm text-gray-900 font-medium">{{ user.subscription_valid_until|date:"d.m.Y H:i"|default:"—" }}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Dni pozostałe</span>
+                <span class="text-sm font-medium">
+                    {% if user.subscription_valid_until %}
+                        <span class="{% if user.days_remaining > 7 %}text-green-700{% elif user.days_remaining > 0 %}text-yellow-600{% else %}text-red-600{% endif %}">
+                            {{ user.days_remaining }} dni
+                        </span>
+                    {% else %}—{% endif %}
+                </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Psy aktywne (limit)</span>
+                <span class="text-sm text-gray-900 font-medium">{% if user.current_plan and user.current_plan.max_breeding_dogs %}{{ user.current_plan.max_breeding_dogs }}{% else %}—{% endif %}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Mioty rocznie (limit)</span>
+                <span class="text-sm text-gray-900 font-medium">{% if user.current_plan and user.current_plan.max_litters_per_year %}{{ user.current_plan.max_litters_per_year }}{% else %}—{% endif %}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Pojemność dysku</span>
+                <span class="text-sm text-gray-900 font-medium">{% if user.current_plan and user.current_plan.storage_gb %}{{ user.current_plan.storage_gb }} GB{% else %}—{% endif %}</span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Dostęp do PiT</span>
+                <span class="text-sm font-medium">
+                    {% if user.has_pit_access %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-green-50 text-green-700 border border-green-200 uppercase tracking-wider">Dostępny</span>
+                    {% elif user.pit_access_months_remaining is not None %}
+                        <span class="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-50 text-orange-700 border border-orange-200 uppercase tracking-wider">Dostępny za {{ user.pit_access_months_remaining }} mies.</span>
+                    {% else %}
+                        <span class="text-gray-400">—</span>
+                    {% endif %}
+                </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Postęp PiT</span>
+                <span class="text-sm text-gray-700">
+                    Masz <b>{{ user.paid_months_last_15 }}</b> z <b>{{ user.pit_required_months }}</b>
+                    opłaconych miesięcy (w ciągu ostatnich 15 mies.)
+                </span>
+            </div>
+
+            <div class="flex flex-col sm:flex-row sm:items-center px-4 sm:px-6 py-4 gap-2 sm:gap-0">
+                <span class="text-[11px] font-black text-gray-600 uppercase tracking-widest sm:w-44 shrink-0">Akcje</span>
+                <div class="flex items-center gap-3">
+                    <a href="{% url 'price_list' %}"
+                       class="px-5 py-2 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
+                        Zmień plan
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Panel: Płatności -->
+    <div id="panel-platnosci" class="hidden">
+
+        {% if user.current_plan %}
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Zarządzanie subskrypcją</p>
+            </div>
+            <div class="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">Opłać nadchodzący miesiąc (BLIK / Przelewy24)</p>
+                    <p class="text-xs text-gray-500 mt-1">Jednorazowa płatność, która wydłuży Twoją subskrypcję o kolejny okres.</p>
+                </div>
+                <form method="post" action="{% url 'create_checkout_session' %}" class="shrink-0">
+                    {% csrf_token %}
+                    <input type="hidden" name="price_id" value="{{ current_plan_price_id }}">
+                    <input type="hidden" name="checkout_type" value="topup">
+                    <button type="submit"
+                            class="px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-sm transition-colors whitespace-nowrap">
+                        Opłać nadchodzący miesiąc
+                    </button>
+                </form>
+            </div>
+            <div class="px-6 py-5 flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <div class="flex-1">
+                    <p class="text-sm font-bold text-gray-900">Zarządzaj kartą / Subskrypcją</p>
+                    <p class="text-xs text-gray-500 mt-1">Zmień kartę, anuluj subskrypcję lub pobierz faktury przez portal Stripe.</p>
+                </div>
+                <form method="post" action="{% url 'billing_portal' %}" class="shrink-0">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="px-5 py-2.5 border border-gray-300 text-gray-700 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-gray-50 transition-colors whitespace-nowrap">
+                        Portal Stripe
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm divide-y divide-gray-100 mb-6">
+            <div class="px-6 pt-5 pb-4">
+                <p class="text-[11px] font-black text-indigo-500 uppercase tracking-widest">Historia płatności</p>
+            </div>
+            {% if payments %}
+            <div class="overflow-x-auto">
+            <table class="w-full min-w-[500px]">
+                <thead>
+                    <tr class="border-b border-gray-100">
+                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Plan</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Kwota</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Data</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Status</th>
+                        <th class="px-4 sm:px-6 py-3 text-left text-[11px] font-black text-gray-500 uppercase tracking-widest">Faktura</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    {% for payment in payments %}
+                    <tr>
+                        <td class="px-4 sm:px-6 py-4 text-sm text-gray-900 font-medium">{{ payment.plan.name }}</td>
+                        <td class="px-4 sm:px-6 py-4 text-sm text-gray-900 font-medium whitespace-nowrap">{{ payment.amount }} zł</td>
+                        <td class="px-4 sm:px-6 py-4 text-sm text-gray-500 whitespace-nowrap">{{ payment.payment_date|date:"d.m.Y"|default:"—" }}</td>
+                        <td class="px-4 sm:px-6 py-4">
+                            {% if payment.status == 'completed' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-green-50 text-green-700 border border-green-200 uppercase tracking-wider whitespace-nowrap">Opłacona</span>
+                            {% elif payment.status == 'pending' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-yellow-50 text-yellow-700 border border-yellow-200 uppercase tracking-wider whitespace-nowrap">Oczekująca</span>
+                            {% elif payment.status == 'failed' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-red-50 text-red-600 border border-red-200 uppercase tracking-wider whitespace-nowrap">Nieudana</span>
+                            {% elif payment.status == 'cancelled' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-gray-100 text-gray-600 border border-gray-200 uppercase tracking-wider whitespace-nowrap">Anulowana</span>
+                            {% elif payment.status == 'refunded' %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-50 text-blue-600 border border-blue-200 uppercase tracking-wider whitespace-nowrap">Zwrócona</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-4 sm:px-6 py-4">
+                            {% if payment.status == 'completed' and payment.invoice_url %}
+                            <a href="{{ payment.invoice_url }}" target="_blank" rel="noopener noreferrer"
+                               class="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-bold rounded-lg transition-colors uppercase tracking-wide whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                                </svg>
+                                Pobierz
+                            </a>
+                            {% else %}
+                            <span class="text-xs text-gray-300">—</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            </div>
+            {% else %}
+            <div class="px-6 py-12 text-center">
+                <p class="text-sm text-gray-400 italic">Brak historii płatności.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="sticky bottom-4 mt-6 bg-white border border-gray-200 rounded-2xl shadow-lg px-6 py-4 flex items-center justify-end gap-3 z-10">
+        <a href="{% url 'dashboard' %}"
+           class="px-6 py-2.5 border border-gray-200 rounded-xl text-sm font-black text-gray-500 uppercase tracking-widest hover:bg-gray-50 transition-colors">
+            ANULUJ
+        </a>
+        <button type="submit" form="profile-form"
+                class="px-6 py-2.5 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
+            ZAPISZ
+        </button>
+    </div>
+
+<script>
+const profileTabs = ['dane', 'hodowla', 'plan', 'platnosci'];
+
+function switchTab(active) {
+    profileTabs.forEach(tab => {
+        const btn = document.getElementById('btn-' + tab);
+        const panel = document.getElementById('panel-' + tab);
+        if (tab === active) {
+            btn.className = "pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider transition-all";
+            panel.classList.remove('hidden');
+        } else {
+            btn.className = "pb-3 text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all";
+            panel.classList.add('hidden');
+        }
+    });
+}
+
+function enableEdit(id) {
+    document.getElementById('val-' + id).classList.add('hidden');
+    document.getElementById('btn-edit-' + id).classList.add('hidden');
+    if (id === 'email') {
+        const badge = document.getElementById('badge-email');
+        if (badge) badge.classList.add('hidden');
+    }
+    const inp = document.getElementById('inp-' + id);
+    inp.classList.remove('hidden');
+    inp.focus();
+    inp.select();
+}
+
+let sensitiveRevealed = false;
+
+async function revealSensitive() {
+    if (sensitiveRevealed) return;
+
+    const password = prompt("Podaj hasło, aby zobaczyć dane wrażliwe:");
+    if (!password) return;
+
+    try {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const response = await fetch("{% url 'reveal_sensitive_data' %}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken,
+            },
+            body: JSON.stringify({ password }),
+        });
+
+        if (response.status === 403) {
+            alert("Nieprawidłowe hasło.");
+            return;
+        }
+        if (!response.ok) {
+            alert("Wystąpił błąd. Spróbuj ponownie.");
+            return;
+        }
+
+        const data = await response.json();
+        sensitiveRevealed = true;
+
+        const revealedClass = "text-sm text-gray-900 font-medium";
+        const fields = {
+            "nip": data.nip,
+            "tax-office": data.tax_office,
+            "pesel": data.pesel,
+            "address1": data.address_line_one,
+            "address2": data.address_line_two,
+            "city": data.city,
+            "region": data.region,
+            "postal": data.postal_code,
+            "country": data.country,
+        };
+
+        for (const [id, value] of Object.entries(fields)) {
+            // 1. Podmiana tekstu i usunięcie gwiazdek
+            const el = document.getElementById("val-" + id);
+            if (el) {
+                el.textContent = value;
+                el.className = revealedClass;
+            }
+
+            // 2. Chowanie oka
+            const eyeBtn = document.getElementById("btn-reveal-" + id);
+            if (eyeBtn) {
+                eyeBtn.classList.add('hidden');
+            }
+
+            // 3. Pokazywanie ołówka do edycji
+            const editBtn = document.getElementById("btn-edit-" + id);
+            if (editBtn) {
+                editBtn.classList.remove('hidden');
+            }
+        }
+    } catch {
+        alert("Wystąpił błąd połączenia.");
+    }
+}
+</script>
+{% endblock %}

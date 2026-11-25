@@ -1,0 +1,217 @@
+<details class="group border-b border-gray-100 last:border-none border-l-[3px] border-l-transparent open:border-l-indigo-400 open:shadow-lg open:shadow-indigo-100/50 open:bg-white open:my-3 open:rounded-xl relative open:z-10">
+
+    <summary class="flex items-center justify-between p-4 sm:p-5 cursor-pointer list-none hover:bg-gray-50 group-open:bg-indigo-50/40 transition-colors group-open:rounded-t-xl">
+        <span class="flex items-center gap-4">
+            {% if dog.profile_picture %}
+                <button type="button" onclick="event.preventDefault(); event.stopPropagation(); openLightbox('{{ dog.profile_picture.url }}')" title="Powiększ profilowe" class="w-10 h-10 rounded-full border border-gray-200 shadow-sm shrink-0 overflow-hidden focus:outline-none transition-transform hover:scale-110">
+                    <img src="{{ dog.profile_picture.url }}" alt="{{ dog.name }}" class="w-full h-full object-cover">
+                </button>
+            {% else %}
+                <span class="w-10 h-10 rounded-full bg-indigo-50 text-indigo-600 border border-indigo-100 flex items-center justify-center font-black text-lg shrink-0 uppercase">
+                    {{ dog.name | first }}
+                </span>
+            {% endif %}
+            <span class="block">
+                <span class="text-base font-black text-gray-900 leading-tight block">{{ dog.name }}</span>
+                <span class="text-sm font-medium text-gray-600 tracking-tighter block">
+                    {{ dog.get_gender_display }} • Data urodzenia: {{ dog.birth_date | date:"d.m.Y" | default:"-" }}
+                </span>
+            </span>
+        </span>
+
+        <span class="flex items-center gap-4">
+            <span class="hidden sm:inline-block text-xs font-bold text-gray-500 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100 shadow-sm">
+                Status: {{ dog.get_breeding_status_display | default:"-" }}
+            </span>
+            <svg class="w-5 h-5 text-gray-300 group-open:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+        </span>
+    </summary>
+
+    <div class="p-6 bg-gray-50/30 border-t border-gray-100 transition-all">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+
+            <div>
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Podstawowe dane</h4>
+                <div class="space-y-3 text-sm">
+                    <p class="text-gray-500 font-semibold">Rasa: <span class="text-gray-900 ml-1 font-bold">{{ dog.breed | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Przydomek: <span class="text-gray-900 ml-1 font-bold">{{ dog.origin_kennel | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Kraj: <span class="text-gray-900 ml-1 font-bold">{{ dog.country_of_registration | default:"-" }}</span></p>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Identyfikacja</h4>
+                <div class="space-y-3 text-sm">
+                    <p class="text-gray-500 font-semibold">PKR: <span class="text-gray-900 ml-1 font-bold">{{ dog.pkr_number | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Reg. oddziału: <span class="text-gray-900 ml-1 font-bold">{{ dog.branch_registration_number | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Chip: <span class="text-gray-900 ml-1 font-bold">{{ dog.chip_number | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Tatuaż: <span class="text-gray-900 ml-1 font-bold">{{ dog.tattoo_number | default:"-" }}</span></p>
+                    <p class="text-gray-500 font-semibold">Umaszczenie: <span class="text-gray-900 ml-1 font-bold">{{ dog.color | default:"-" }}</span></p>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Pochodzenie</h4>
+                <div class="space-y-3">
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm">
+                        <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Ojciec</p>
+                        <p class="text-sm text-gray-900 font-bold italic">{{ dog.father | default:"Nieznany" }}</p>
+                    </div>
+                    <div class="bg-white p-2.5 rounded-xl border border-gray-100 shadow-sm">
+                        <p class="text-[10px] text-gray-400 uppercase font-black mb-1">Matka</p>
+                        <p class="text-sm text-gray-900 font-bold italic">{{ dog.mother | default:"Nieznana" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Rozwój i Waga</h4>
+                <div class="space-y-3">
+                    <!-- OSTATNI POMIAR WAGI -->
+                    <p class="text-gray-500 font-semibold text-sm">Ostatni pomiar wagi:
+                        <span class="text-gray-900 ml-1 font-bold">
+                            {% if dog.current_weight %}{{ dog.current_weight }} kg{% else %}<span class="italic font-medium text-gray-400">Brak</span>{% endif %}
+                        </span>
+                    </p>
+
+                    <!-- HISTORIA WAGI -->
+                   {% if dog.measurement_set.all %}
+                    <details class="group/weight bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+                        <summary class="flex justify-between items-center cursor-pointer p-2.5 hover:bg-gray-50 transition-colors list-none">
+                            <span class="text-[10px] text-gray-400 uppercase font-black">Historia pomiarów wagi</span>
+                            <svg class="w-4 h-4 text-gray-400 group-open/weight:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <div class="p-2.5 bg-gray-50/50 border-t border-gray-100 max-h-32 overflow-y-auto">
+                            <div class="space-y-1.5">
+                                {% for record in dog.measurement_set.all %}
+                                    {% if record.weight %}
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-gray-500 font-medium">{{ record.date|date:"d.m.Y" }}</span>
+                                        <span class="text-gray-900 font-bold">{{ record.weight }} kg</span>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </details>
+                    {% endif %}
+
+                    <!-- OSTATNI POMIAR WZROSTU -->
+                    <p class="text-gray-500 font-semibold text-sm">Ostatni pomiar wzrostu:
+                        <span class="text-gray-900 ml-1 font-bold">
+                            {% if dog.current_height %}{{ dog.current_height }} cm{% else %}<span class="italic font-medium text-gray-400">Brak</span>{% endif %}
+                        </span>
+                    </p>
+
+                    <!-- HISTORIA WZROSTU -->
+                    {% if dog.measurement_set.all %}
+                    <details class="group/height bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden mt-3">
+                        <summary class="flex justify-between items-center cursor-pointer p-2.5 hover:bg-gray-50 transition-colors list-none">
+                            <span class="text-[10px] text-gray-400 uppercase font-black">Historia pomiarów wzrostu</span>
+                            <svg class="w-4 h-4 text-gray-400 group-open/height:rotate-180 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </summary>
+                        <div class="p-2.5 bg-gray-50/50 border-t border-gray-100 max-h-32 overflow-y-auto">
+                            <div class="space-y-1.5">
+                                {% for record in dog.measurement_set.all %}
+                                    {% if record.height %}
+                                    <div class="flex justify-between items-center text-xs">
+                                        <span class="text-gray-500 font-medium">{{ record.date|date:"d.m.Y" }}</span>
+                                        <span class="text-gray-900 font-bold">{{ record.height }} cm</span>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </details>
+                    {% endif %}
+
+                </div>
+            </div>
+
+            <div class="col-span-1 md:col-span-2 lg:col-span-4 border-t border-gray-100 mt-2"></div>
+
+            <div>
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Współwłasność</h4>
+                {% if dog.co_owner_last_name %}
+                    <div class=" p-4 rounded-xl border border-gray-100 bg-white shadow-sm">
+                        <p class="text-sm text-gray-900 font-black  mb-1 uppercase">{{ dog.co_owner_first_name }} {{ dog.co_owner_last_name }}</p>
+                        <p class="text-sm text-gray-900 font-medium leading-tight">
+                            {{ dog.co_owner_postal_code }} {{ dog.co_owner_city }}<br>
+                            {{ dog.co_owner_address_line_one }} {% if dog.co_owner_address_line_two %}/ {{ dog.co_owner_address_line_two }}{% endif %}
+                        </p>
+                    </div>
+                {% else %}
+                    <div class="flex items-center gap-2 text-gray-400 italic text-sm font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
+                        Brak współwłaściciela
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="lg:col-span-3">
+                <h4 class="text-xs font-black text-indigo-500 uppercase tracking-widest mb-4">Testy medyczne i pliki</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {% for record in dog.medicalrecord_set.all %}
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <span class="text-xs font-bold text-gray-800 flex-1 pr-3">
+                                {{ record.treatment_type.name }}: <span class="text-indigo-600">{{ record.result.name }}</span>
+                            </span>
+                            {% if record.result_file %}
+                                <a href="{{ record.result_file.url }}" target="_blank" class="shrink-0 inline-flex items-center gap-1.5 text-[10px] font-black text-white bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg transition-colors uppercase shadow-sm">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Plik
+                                </a>
+                            {% else %}
+                                <span class="shrink-0 text-[10px] text-gray-400 font-medium italic">Brak pliku</span>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="col-span-full">
+                            <span class="text-sm text-gray-400 font-medium italic">Pies nie ma jeszcze przypisanych testów.</span>
+                        </div>
+                    {% endfor %}
+
+                    {% for record in dog.documentrecord_set.all %}
+                        <div class="flex items-center justify-between p-3 bg-white rounded-xl border border-gray-100 shadow-sm">
+                            <span class="text-xs font-bold text-gray-800 flex-1 pr-3">
+                                {{ record.document_name }}
+                            </span>
+                            {% if record.document_file %}
+                                <a href="{{ record.document_file.url }}" target="_blank" class="shrink-0 inline-flex items-center gap-1.5 text-[10px] font-black text-white bg-indigo-500 hover:bg-indigo-600 px-3 py-1.5 rounded-lg transition-colors uppercase shadow-sm">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    Plik
+                                </a>
+                            {% else %}
+                                <span class="shrink-0 text-[10px] text-gray-400 font-medium italic">Brak pliku</span>
+                            {% endif %}
+                        </div>
+                    {% empty %}
+                        <div class="col-span-full">
+                            <span class="text-sm text-gray-400 font-medium italic">Pies nie ma jeszcze przypisanych dokumentów.</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray-100 flex items-center justify-end gap-4">
+            <a href="{% url 'dog_delete' pk=dog.pk %}"
+               class="text-xs font-black text-gray-600 hover:text-red-600 transition-colors uppercase tracking-widest">
+               Usuń
+            </a>
+
+            <a href="{% url 'dog_measurements' dog.pk %}" class="inline-flex items-center gap-2 text-xs font-black text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest px-6 py-3 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Dziennik rozwoju
+            </a>
+
+            <a href="{% url 'dog_edit' pk=dog.pk %}" class="text-xs font-black text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-widest px-6 py-3 bg-indigo-50 rounded-xl border border-indigo-100 shadow-sm">
+                Edytuj dane
+            </a>
+        </div>
+    </div>
+
+</details>

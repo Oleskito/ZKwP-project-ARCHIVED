@@ -1,16 +1,52 @@
-.env
-__pycache__/
-*.pyc
-db.sqllite3
-venv/
+# ==============================================================================
+# .gitignore - Przydomek.pl
+# ==============================================================================
+
+# IDE i edytory kodu
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Środowiska wirtualne Python
 .venv/
+venv/
+env/
+ENV/
+
+# Pamięć podręczna i pliki kompilowane
+__pycache__/
+**/__pycache__/**
+*.py[cod]
+*$py.class
+.ruff_cache/
+.pytest_cache/
+
+# Bazy danych, kopie zapasowe i sekrety
+.env
+*.env
+!.env.example
+.pgpass
+dump.sql
+*.sqlite3
+*.db
+pg_data/
 DB_BACKUPS/
-./.idea
 
-#tailwind i podobne
-/Styles/output.css
-tailwindcss.exe
+# Pliki logów
+*.log
+log.txt
+*.log.*
+
+# Pliki mediów użytkownika (zdjęcia psów, skany badań, załączniki)
+media/*
+!media/.gitkeep
+
+# Frontend & narzędzia kompilacji
 node_modules/
-package.json
-package-lock.json
+Styles/output.css
+tailwindcss.exe
 
+# Notatki wewnętrzne i robocze
+Przepisy/

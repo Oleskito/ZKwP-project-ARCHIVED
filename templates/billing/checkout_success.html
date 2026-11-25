@@ -1,0 +1,34 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Płatność przyjęta - Przydomek{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+
+    <div class="bg-white rounded-3xl border border-gray-100 shadow-sm p-12 max-w-lg w-full">
+
+        <div class="flex items-center justify-center w-20 h-20 rounded-full bg-green-50 mx-auto mb-6">
+            <svg class="w-10 h-10 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+            </svg>
+        </div>
+
+        <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-3">
+            Płatność w trakcie przetwarzania
+        </h1>
+
+        <p class="text-base text-gray-500 mb-2">
+            Dziękujemy! Twoja płatność została przyjęta.
+        </p>
+        <p class="text-sm text-gray-400 mb-8">
+            Aktywacja planu może potrwać kilka chwil. Możesz odświeżyć stronę po chwili.
+        </p>
+
+        <a href="{% url 'dashboard' %}"
+           class="inline-block px-8 py-3 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 shadow-lg shadow-indigo-100 transition-colors">
+            Wróć do panelu
+        </a>
+    </div>
+
+</div>
+{% endblock %}

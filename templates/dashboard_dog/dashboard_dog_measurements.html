@@ -1,0 +1,359 @@
+{% extends 'dashboard/kennel_panel_base.html' %} {% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+        <div>
+            <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight">Dziennik rozwoju</h1>
+            <p class="text-sm font-medium text-gray-500 mt-1">Pies: <span class="text-indigo-600 font-bold">{{ dog.name }}</span></p>
+        </div>
+        <a href="{% url 'dashboard_dog' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-gray-200 rounded-xl shadow-sm text-xs font-black text-gray-700 hover:bg-gray-50 transition-colors uppercase tracking-widest">
+            &larr; Wróć do psów
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+        <div class="lg:col-span-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 self-start">
+            <h2 class="text-sm font-black text-gray-900 uppercase tracking-widest mb-6">Dodaj nowy pomiar</h2>
+
+            <form method="POST" class="space-y-4" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Data pomiaru *</label>
+                    {{ form.date }}
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Waga (kg)</label>
+                        {{ form.weight }}
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Wzrost (cm)</label>
+                        {{ form.height }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Obwód klatki (cm)</label>
+                        {{ form.chest_girth }}
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Obwód głowy (cm)</label>
+                        {{ form.head_girth }}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Dł. tułowia (cm)</label>
+                        {{ form.body_length }}
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">BCS (1-9)</label>
+                        {{ form.bcs }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Temperatura (°C)</label>
+                    {{ form.temperature }}
+                </div>
+
+                <div class="sm:col-span-2 lg:col-span-2">
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Zdjęcie sylwetki</label>
+                    <div class="flex flex-col sm:flex-row items-center sm:items-start gap-4 mt-2">
+                        {% if measurement and measurement.photo %}
+                            <div class="shrink-0 relative group cursor-pointer" onclick="openLightbox('{{ measurement.photo.url }}')" title="Powiększ zdjęcie">
+                                <div class="w-16 h-16 rounded-xl overflow-hidden border border-gray-200 shadow-sm transition-all group-hover:border-indigo-400 group-hover:shadow-md bg-gray-50 flex items-center justify-center">
+                                    <img src="{{ measurement.photo.url }}" class="w-full h-full object-cover" alt="Obecne zdjęcie">
+                                    <div class="absolute inset-0 bg-indigo-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                                        <svg class="w-5 h-5 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7"></path></svg>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endif %}
+                        <div class="flex-1 w-full max-w-sm">
+                            <label for="{{ form.photo.id_for_label }}" id="upload-label" class="flex items-center gap-3 p-2 bg-gray-50 border-2 border-dashed border-gray-200 rounded-xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer group m-0">
+                                <div id="upload-icon-container" class="w-8 h-8 bg-white rounded-lg shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 transition-transform shrink-0">
+                                    <svg id="upload-icon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                    <svg id="success-icon" class="w-4 h-4 hidden text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                </div>
+                                <div class="flex-1 overflow-hidden">
+                                    <span id="upload-main-text" class="block text-[10px] font-black text-gray-900 uppercase tracking-wider truncate transition-colors">{% if measurement and measurement.photo %}Zmień{% else %}Wgraj zdjęcie{% endif %}</span>
+                                </div>
+                            </label>
+                            <div class="hidden">
+                                {{ form.photo }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Notatki / Kamienie milowe</label>
+                    {{ form.notes }}
+                </div>
+
+                <button type="submit" class="w-full mt-4 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-black rounded-xl transition-colors uppercase tracking-widest shadow-sm">
+                    Zapisz pomiar
+                </button>
+            </form>
+        </div>
+
+        <div class="lg:col-span-8 flex flex-col gap-6">
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-sm font-black text-gray-900 uppercase tracking-widest">Krzywa wzrostu i rozwoju</h2>
+                </div>
+
+                <div class="flex flex-wrap gap-2 mb-6 border-b border-gray-100 pb-4" id="chart-tabs">
+                    <button type="button" onclick="updateChart('weight', 'Waga', 'kg', this)" class="chart-tab-btn active px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-indigo-600 text-white transition-colors">Waga</button>
+                    <button type="button" onclick="updateChart('height', 'Wzrost w kłębie', 'cm', this)" class="chart-tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">Wzrost</button>
+                    <button type="button" onclick="updateChart('chest_girth', 'Obwód klatki', 'cm', this)" class="chart-tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">Klatka</button>
+                    <button type="button" onclick="updateChart('head_girth', 'Obwód głowy', 'cm', this)" class="chart-tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">Głowa</button>
+                    <button type="button" onclick="updateChart('body_length', 'Długość tułowia', 'cm', this)" class="chart-tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">Długość</button>
+                    <button type="button" onclick="updateChart('temperature', 'Temperatura', '°C', this)" class="chart-tab-btn px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg bg-gray-50 text-gray-500 hover:bg-gray-100 transition-colors">Temp.</button>
+                </div>
+
+                <div class="relative w-full h-72">
+                    <canvas id="growthChart"></canvas>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                <div class="p-6 border-b border-gray-50">
+                    <h2 class="text-sm font-black text-gray-900 uppercase tracking-widest">Historia pomiarów</h2>
+                </div>
+
+                {% if measurements %}
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm whitespace-nowrap">
+                            <thead class="bg-gray-50/50 text-[10px] text-gray-500 uppercase tracking-widest font-black">
+                                <tr>
+                                    <th class="px-6 py-4 w-12">Zdjęcie</th>
+                                    <th class="px-6 py-4">Data</th>
+                                    <th class="px-6 py-4">Waga</th>
+                                    <th class="px-6 py-4">Wzrost</th>
+                                    <th class="px-6 py-4 hidden sm:table-cell">Dodatkowe</th>
+                                    <th class="px-6 py-4">Notatki</th>
+                                    <th class="px-6 py-4 text-right">Akcje</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100">
+                                {% for m in measurements %}
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+
+                                    <td class="px-6 py-4">
+                                        {% if m.photo %}
+                                            <button type="button" onclick="openLightbox('{{ m.photo.url }}')" title="Powiększ zdjęcie" class="focus:outline-none block transition-transform hover:scale-110">
+                                                <div class="w-10 h-10 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+                                                    <img src="{{ m.photo.url }}" alt="Zdjęcie z pomiaru" class="w-full h-full object-cover">
+                                                </div>
+                                            </button>
+                                        {% else %}
+                                            <div class="w-10 h-10 rounded-lg border border-dashed border-gray-200 bg-gray-50 flex items-center justify-center text-gray-300">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            </div>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="px-6 py-4 text-gray-500 font-medium">{{ m.date|date:"d.m.Y" }}</td>
+                                    <td class="px-6 py-4 font-black text-indigo-600">{% if m.weight %}{{ m.weight }} kg{% else %}<span class="text-gray-300">-</span>{% endif %}</td>
+                                    <td class="px-6 py-4 font-black text-gray-900">{% if m.height %}{{ m.height }} cm{% else %}<span class="text-gray-300">-</span>{% endif %}</td>
+
+                                    <td class="px-6 py-4 hidden sm:table-cell text-xs text-gray-500">
+                                        <div class="flex flex-col gap-1">
+                                            {% if m.temperature %}
+                                                <span title="Temperatura ciała">🌡️ {{ m.temperature }} °C</span>
+                                            {% endif %}
+
+                                            {% if m.chest_girth %}
+                                                <span title="Obwód klatki piersiowej">📏 Klatka: {{ m.chest_girth }} cm</span>
+                                            {% endif %}
+
+                                            {% if m.head_girth %}
+                                                <span title="Obwód głowy">📏 Głowa: {{ m.head_girth }} cm</span>
+                                            {% endif %}
+
+                                            {% if m.body_length %}
+                                                <span title="Długość tułowia">📏 Długość: {{ m.body_length }} cm</span>
+                                            {% endif %}
+
+                                            {% if m.bcs %}
+                                                <span title="Kondycja ciała (Body Condition Score)">⚖️ BCS: {{ m.bcs }}/9</span>
+                                            {% endif %}
+
+                                            {% if not m.temperature and not m.chest_girth and not m.head_girth and not m.body_length and not m.bcs %}
+                                                <span class="text-gray-300">-</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+
+                                    <td class="px-6 py-4 text-xs text-gray-600 whitespace-normal min-w-[150px]">
+                                        {{ m.notes|default:"<span class='text-gray-300'>-</span>"|safe }}
+                                    </td>
+
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center justify-end gap-1">
+                                            <a href="{% url 'measurement_edit' m.pk %}" class="flex items-center justify-center text-gray-400 hover:text-indigo-600 transition-colors bg-white p-2 rounded-lg border border-transparent hover:border-indigo-100 hover:bg-indigo-50" title="Edytuj ten pomiar">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                            </a>
+                                            <form method="GET" action="{% url 'measurement_delete' m.pk %}" class="m-0 p-0 flex">
+                                                {% csrf_token %}
+                                                <button type="submit" class="flex items-center justify-center text-gray-400 hover:text-red-600 transition-colors bg-white p-2 rounded-lg border border-transparent hover:border-red-100 hover:bg-red-50" title="Usuń ten pomiar">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="p-12 text-center">
+                        <div class="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        </div>
+                        <p class="text-sm font-bold text-gray-500">Brak pomiarów dla tego psa.</p>
+                        <p class="text-xs text-gray-400 mt-1">Użyj formularza po lewej stronie, aby dodać pierwszy wpis.</p>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+
+    </div>
+</div>
+
+<div id="lightbox-modal" class="fixed inset-0 z-[100] hidden bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 sm:p-8 transition-opacity cursor-pointer" onclick="closeLightbox()">
+
+    <button class="absolute top-6 right-6 text-white hover:text-gray-300 focus:outline-none transition-colors">
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+    </button>
+
+    <img id="lightbox-img" src="" alt="Powiększone zdjęcie" class="max-w-full max-h-full rounded-2xl shadow-2xl cursor-default" onclick="event.stopPropagation()">
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Zbieranie danych z Django (od najstarszych do najnowszych)
+    const rawData = [
+        {% for m in measurements reversed %}
+        {
+            date: "{{ m.date|date:'d.m.Y' }}",
+            weight: parseFloat("{{ m.weight|default:'' }}".replace(',', '.')) || null,
+            height: parseFloat("{{ m.height|default:'' }}".replace(',', '.')) || null,
+            chest_girth: parseFloat("{{ m.chest_girth|default:'' }}".replace(',', '.')) || null,
+            head_girth: parseFloat("{{ m.head_girth|default:'' }}".replace(',', '.')) || null,
+            body_length: parseFloat("{{ m.body_length|default:'' }}".replace(',', '.')) || null,
+            temperature: parseFloat("{{ m.temperature|default:'' }}".replace(',', '.')) || null,
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    const ctx = document.getElementById('growthChart');
+    if (!ctx) return;
+    const chartContext = ctx.getContext('2d');
+    let currentChart = null;
+
+    window.updateChart = function(datasetKey, labelName, unit, btnElement) {
+        if(btnElement) {
+            document.querySelectorAll('.chart-tab-btn').forEach(btn => {
+                btn.classList.remove('bg-indigo-600', 'text-white');
+                btn.classList.add('bg-gray-50', 'text-gray-500');
+            });
+            btnElement.classList.remove('bg-gray-50', 'text-gray-500');
+            btnElement.classList.add('bg-indigo-600', 'text-white');
+        }
+
+        const labels = rawData.map(d => d.date);
+        const dataPoints = rawData.map(d => d[datasetKey]);
+
+        // Sprawdzamy, czy w ogóle mamy jakieś dane dla tego parametru
+        const hasData = dataPoints.some(val => val !== null);
+
+        // Niszczymy stary wykres przed narysowaniem nowej zakładki
+        if (currentChart) {
+            currentChart.destroy();
+        }
+
+        currentChart = new Chart(chartContext, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: labelName,
+                    data: dataPoints,
+                    borderColor: '#4f46e5',
+                    backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#4f46e5',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    fill: true,
+                    tension: 0.4,
+                    spanGaps: true // Połączy punkty linią, jeśli brakuje danych pośrodku
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: '#1f2937',
+                        padding: 12,
+                        titleFont: { family: 'Poppins', size: 13 },
+                        bodyFont: { family: 'Poppins', size: 14, weight: 'bold' },
+                        callbacks: {
+                            label: function(context) {
+                                return ` ${context.parsed.y} ${unit}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: false,
+                        // Dynamiczny margines góra/dół, żeby wykres zawsze wyglądał dobrze
+                        suggestedMin: hasData ? Math.min(...dataPoints.filter(n => n)) * 0.9 : 0,
+                        suggestedMax: hasData ? Math.max(...dataPoints.filter(n => n)) * 1.1 : 10,
+                        grid: { color: '#f3f4f6', drawBorder: false },
+                        ticks: {
+                            font: { family: 'Poppins', size: 11 },
+                            color: '#6b7280',
+                            callback: function(value) { return value + ' ' + unit; }
+                        }
+                    },
+                    x: {
+                        grid: { display: false, drawBorder: false },
+                        ticks: {
+                            font: { family: 'Poppins', size: 11 },
+                            color: '#6b7280',
+                            maxRotation: 45,
+                            minRotation: 0
+                        }
+                    }
+                }
+            }
+        });
+    };
+
+    // Inicjalizacja domyślnego wykresu (Waga) po załadowaniu strony
+    if(rawData.length > 0) {
+        const firstBtn = document.querySelector('.chart-tab-btn');
+        updateChart('weight', 'Waga', 'kg', firstBtn);
+    }
+});
+</script>
+{% endblock %}

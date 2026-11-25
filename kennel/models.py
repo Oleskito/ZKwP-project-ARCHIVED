@@ -4,6 +4,7 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django_countries.fields import CountryField
 from smart_selects.db_fields import ChainedForeignKey
+import uuid
 
 
 class Dog(models.Model):
@@ -17,6 +18,10 @@ class Dog(models.Model):
         INACTIVE = "inactive", "Nieaktywny hodowlanie"
         SOLD = "sold", "Sprzedany"
         DECEASED = "deceased", "Zmarły"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
 
     # Klucze obce:
     father = models.ForeignKey(
@@ -48,18 +53,21 @@ class Dog(models.Model):
 
     name = models.CharField(
         max_length=100,
-        verbose_name="Imię psa i przydomek hodowlany",
+        verbose_name="Imię psa",
+    )
+    origin_kennel = models.CharField(
+        max_length=100, blank=True, verbose_name="Przydomek psa"
     )
     gender = models.CharField(
         max_length=10,
         blank=True,
-        choices=Gender.choices,
+        choices=Gender.choices,  # type:ignore
         verbose_name="Płeć psa",
     )
     breeding_status = models.CharField(
         max_length=30,
         blank=True,
-        choices=BreedingStatus.choices,
+        choices=BreedingStatus.choices,  # type:ignore
         verbose_name="Status hodowlany",
     )
     birth_date = models.DateField(
@@ -70,9 +78,6 @@ class Dog(models.Model):
         max_length=20, blank=True, verbose_name="Numer rejestracyjny oddziału"
     )
     country_of_registration = CountryField(default="PL", verbose_name="Kraj")
-    tests_results = models.JSONField(
-        default=dict, blank=True, verbose_name="Testy ojca"
-    )
     chip_number = models.CharField(
         max_length=20, blank=True, null=True, verbose_name="Numer chipa"
     )
@@ -106,6 +111,13 @@ class Dog(models.Model):
     )
     co_owner_country = CountryField(default="PL", verbose_name="Kraj")
 
+    profile_picture = models.ImageField(
+        upload_to="dogs/profiles/",
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie profilowe",
+    )
+
     class Meta:
         constraints = [
             models.UniqueConstraint(
@@ -117,12 +129,53 @@ class Dog(models.Model):
         ]
 
     def __str__(self):
-        if self.chip_number:
-            return f"{self.name} [{self.chip_number}]"
+        if self.birth_date:
+            return f"{self.name} ({self.birth_date})"
+        elif self.chip_number:
+            return f"{self.name} Chip: {self.chip_number}"
+        elif self.tattoo_number:
+            return f"{self.name} Tatuaż: {self.tattoo_number}"
         return self.name
+
+    def clean(self):
+        super().clean()
+        if self.father and self.father.gender != "male":
+            raise ValidationError({"father": "Ojcem musi być samiec."})
+        if self.mother and self.mother.gender != "female":
+            raise ValidationError({"mother": "Matką musi być samica."})
+
+    def save(self, *args, **kwargs):
+        archival_statuses = [
+            self.BreedingStatus.INACTIVE,
+            self.BreedingStatus.SOLD,
+            self.BreedingStatus.DECEASED,
+        ]
+
+        if self.breeding_status in archival_statuses:
+            self.is_archived = True
+        else:
+            self.is_archived = False
+
+        super().save(*args, **kwargs)
+
+    @property
+    def current_weight(self):
+        # Szukamy najnowszego pomiaru psa, który ma wpisaną wagę
+        latest_measurement = self.measurement_set.filter(weight__isnull=False).first()
+        return latest_measurement.weight if latest_measurement else None
+
+    @property
+    def current_height(self):
+        # Szukamy najnowszego pomiaru psa, który ma wpisany wzrost
+        latest_measurement = self.measurement_set.filter(height__isnull=False).first()
+        return latest_measurement.height if latest_measurement else None
 
 
 class Breed(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
+
     name = models.CharField(max_length=80, verbose_name="Nazwa razy")
     is_small_breed = models.BooleanField(default=False, verbose_name="Mała rasa")
     required_tests = models.JSONField(
@@ -138,7 +191,7 @@ class Breed(models.Model):
 
 class Litter(models.Model):
     class Status(models.TextChoices):
-        PLANNED = "planed", "Planowany"
+        PLANNED = "planned", "Planowany"
         MATED = "mated", "Krycie wykonane"
         EMPTY = "empty", "Brak ciąży"
         BORN = "born", "Urodzony"
@@ -146,19 +199,27 @@ class Litter(models.Model):
         INSPECTED = "inspected", "Po przeglądzie"
         ARCHIVED = "archived", "Zarchiwizowany"
 
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
+
     # Foreign Keys:
     breeder = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
     )
     mother = models.ForeignKey(
         "kennel.Dog",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         verbose_name="Matka",
         related_name="litters_as_mother",
     )
     father = models.ForeignKey(
         "kennel.Dog",
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         verbose_name="Ojciec",
         related_name="litters_as_father",
     )
@@ -171,7 +232,7 @@ class Litter(models.Model):
     )
 
     mating_place = models.CharField(
-        max_length=100, blank=True, verbose_name="Miejsce krycia"
+        max_length=200, blank=True, verbose_name="Miejsce krycia"
     )
     mating_date_start = models.DateField(
         blank=True, null=True, verbose_name="Data początku krycia"
@@ -195,7 +256,10 @@ class Litter(models.Model):
         max_length=10, blank=True, verbose_name="Litera miotu"
     )
     status = models.CharField(
-        max_length=20, blank=True, choices=Status.choices, verbose_name="Status miotu"
+        max_length=20,
+        blank=True,
+        choices=Status.choices,
+        verbose_name="Status miotu",  # type:ignore
     )
     # wybierane opcjonalnie jeśli ojciec lub matka jest z innej hodowli:
     father_data_snapshot = models.JSONField(
@@ -208,6 +272,39 @@ class Litter(models.Model):
         blank=True,
         verbose_name="Dane o samicy i właścicielu spoza hodowli",
     )
+    cover_photo = models.ImageField(
+        upload_to="litters/covers/",
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie w tle / okładka",
+    )
+
+    def clean(self):
+        super().clean()
+
+        # Ochrona przed podwójnym ojcem
+        if self.father and self.father_data_snapshot:
+            raise ValidationError(
+                "Miot nie może mieć jednocześnie ojca przypisanego z bazy i ojca zewnętrznego."
+            )
+
+        # Ochrona przed podwójną matką
+        if self.mother and self.mother_data_snapshot:
+            raise ValidationError(
+                "Miot nie może mieć jednocześnie matki przypisanej z bazy i matki zewnętrznej."
+            )
+
+    def save(self, *args, **kwargs):
+        # Uruchamiamy clean() przed każdym zapisem, nawet z kodu lub panelu admina
+        self.clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        if self.birth_date:
+            return f"Miot {self.litter_letter} ({self.birth_date})"
+        elif self.mating_date_start:
+            return f"Miot {self.litter_letter} ({self.mating_date_start})"
+        return f"Miot {self.litter_letter}, {self.get_status_display()}"
 
 
 class Puppy(models.Model):
@@ -216,12 +313,16 @@ class Puppy(models.Model):
         FEMALE = "female", "Samica"
 
     class Status(models.TextChoices):
-        AVAILABLE = "available", "dostępny"
-        RESERVED = "reserved", "zarezerwowany"
+        AVAILABLE = "available", "Dostępny"
+        RESERVED = "reserved", "Zarezerwowany"
         BOOKED = "booked", "Opłacony"
         STAYING = "staying", "Zostaje w hodowli"
-        SOLD = "sold", "Wyjechał do nowego domu"
+        SOLD = "sold", "Sprzedany"
         DECEASED = "deceased", "Zmarły"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
 
     # Foreign Keys:
     breeder = models.ForeignKey(
@@ -230,17 +331,27 @@ class Puppy(models.Model):
     litter = models.ForeignKey(
         "kennel.Litter", on_delete=models.CASCADE, verbose_name="Miot szczeniaka"
     )
+    adult_dog_profile = models.OneToOneField(
+        "Dog",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="original_puppy",
+        help_text="Jeśli szczenię zostało w hodowli, tu znajduje się link do jego dorosłego profilu.",
+    )
 
     name = models.CharField(max_length=100, verbose_name="Imię i przydomek szczeniaka")
     color = models.CharField(max_length=45, blank=True, verbose_name="Umaszczenie")
     gender = models.CharField(
-        max_length=10, choices=Gender.choices, verbose_name="Płeć"
+        max_length=10,
+        choices=Gender.choices,
+        verbose_name="Płeć",  # type:ignore
     )
     chip_number = models.CharField(
         max_length=20, blank=True, null=True, verbose_name="Numer chipa"
     )
     tattoo_number = models.CharField(
-        max_length=20, blank=True, null=True, verbose_name="Numer tatuaża"
+        max_length=20, blank=True, null=True, verbose_name="Numer tatuażu"
     )
     internal_id = models.CharField(
         max_length=100,
@@ -249,9 +360,15 @@ class Puppy(models.Model):
     )
     status = models.CharField(
         max_length=50,
-        choices=Status.choices,
+        choices=Status.choices,  # type:ignore
         blank=True,
         verbose_name="Status szczeniaka",
+    )
+    profile_picture = models.ImageField(
+        upload_to="puppies/profiles/",
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie profilowe",
     )
 
     class Meta:
@@ -270,8 +387,21 @@ class Puppy(models.Model):
             return f"{self.name} [{self.chip_number}]"
         return self.name
 
+    @property
+    def current_weight(self):
+        latest_measurement = self.measurement_set.filter(weight__isnull=False).first()
+        return latest_measurement.weight if latest_measurement else None
+
+    @property
+    def current_height(self):
+        latest_measurement = self.measurement_set.filter(height__isnull=False).first()
+        return latest_measurement.height if latest_measurement else None
+
 
 class Buyer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
     # Foreign keys:
     breeder = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name="Hodowca"
@@ -302,12 +432,6 @@ class Buyer(models.Model):
         max_length=15, blank=True, verbose_name="Kod pocztowy"
     )
     country = CountryField(default="PL", verbose_name="Kraj")
-    created_at = models.DateTimeField(
-        auto_now_add=True, verbose_name="Data dodania do systemu"
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True, verbose_name="Ostatnia aktualizacja"
-    )
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
@@ -315,6 +439,9 @@ class Buyer(models.Model):
 
 class TreatmentType(models.Model):
     name = models.CharField(max_length=100, verbose_name="Typ zabiegu / badania")
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
 
     class Meta:
         verbose_name = "Rodzaj zabiegu"
@@ -325,6 +452,9 @@ class TreatmentType(models.Model):
 
 
 class TreatmentResult(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
     treatment_type = models.ForeignKey("kennel.TreatmentType", on_delete=models.PROTECT)
     name = models.CharField(max_length=100, verbose_name="Wynik zabiegu / badania")
 
@@ -337,7 +467,9 @@ class TreatmentResult(models.Model):
 
 
 class MedicalRecord(models.Model):
-    # Foreign Keys:
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
     dog = models.ForeignKey(
         "kennel.Dog",
         blank=True,
@@ -352,6 +484,13 @@ class MedicalRecord(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Szczenię",
     )
+    litter = models.ForeignKey(
+        "kennel.Litter",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Miot",
+    )
     date = models.DateField(blank=True, null=True, verbose_name="Data badania")
 
     treatment_type = models.ForeignKey("kennel.TreatmentType", on_delete=models.PROTECT)
@@ -364,8 +503,12 @@ class MedicalRecord(models.Model):
         auto_choose=True,
         sort=True,
     )
-    # PRZY DODAWANIU CHMURY TRZEBA DODAĆ TE POLE
-    # result_file = models.FileField(upload_to="medical/%Y/", null=True, blank=True)
+    result_file = models.FileField(
+        upload_to="medical/%Y/",
+        null=True,
+        blank=True,
+        verbose_name="Plik z dokumentem (skan, wynik)",
+    )
 
     class Meta:
         verbose_name = "Wpis medyczny"
@@ -373,22 +516,210 @@ class MedicalRecord(models.Model):
         constraints = [
             models.CheckConstraint(  # Dodaj 'models.' tutaj
                 condition=(
-                    models.Q(dog__isnull=False, puppy__isnull=True)
-                    | models.Q(dog__isnull=True, puppy__isnull=False)
+                    models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True)
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=False, litter__isnull=True
+                    )
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=True, litter__isnull=False
+                    )
                 ),
-                name="medical_record_xor_animal",
+                name="medical_record_one_animal_source",
             )
         ]
 
     def clean(self):
-        if not self.dog and not self.puppy:
-            raise ValidationError("Musisz wybrać psa LUB szczeniaka.")
-        if self.dog and self.puppy:
+        sources = [self.dog, self.puppy, self.litter]
+        selected_count = sum(bool(source) for source in sources)
+
+        if selected_count == 0:
+            raise ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
+        if selected_count > 1:
             raise ValidationError(
-                "Nie możesz przypisać wpisu jednocześnie do psa I szczeniaka"
+                "Dokument może być przypisany tylko do jednego źródła naraz."
             )
 
     def __str__(self):
         if self.dog:
             return f"{self.dog}: {self.treatment_type},{self.result}"
-        return f"{self.puppy}: {self.treatment_type},{self.result}"
+        if self.puppy:
+            return f"{self.puppy}: {self.treatment_type},{self.result}"
+        return f"{self.litter}: {self.treatment_type},{self.result}"
+
+
+class DocumentRecord(models.Model):
+    class Category(models.TextChoices):
+        PEDIGREE = "pedigree", "Rodowód"
+        CONTRACT = "contract", "Umowa"
+        CERTIFICATE = "certificate", "Certyfikat/Dyplom/Wystawa"
+        OTHER = "other", "Inne"
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    updated_at = models.DateTimeField(auto_now=True, verbose_name="Ostatnia edycja")
+    dog = models.ForeignKey(
+        "kennel.Dog",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Pies z naszych psów",
+    )
+    puppy = models.ForeignKey(
+        "kennel.Puppy",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Szczenię",
+    )
+    litter = models.ForeignKey(
+        "kennel.Litter",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        verbose_name="Miot",
+    )
+    date = models.DateField(blank=True, null=True, verbose_name="Data dokumentu")
+
+    category = models.CharField(
+        max_length=20,
+        choices=Category.choices,  # type:ignore
+        default=Category.OTHER,
+        verbose_name="Typ dokumentu",
+    )
+
+    document_name = models.CharField(
+        max_length=50, blank=True, null=True, verbose_name="Nazwa dokumentu"
+    )
+    document_file = models.FileField(
+        upload_to="document/%Y/", null=True, blank=True, verbose_name="Plik dokumentu"
+    )
+
+    class Meta:
+        verbose_name = "Dokument"
+        verbose_name_plural = "Dokumenty"
+        constraints = [
+            models.CheckConstraint(  # Dodaj 'models.' tutaj
+                condition=(
+                    models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True)
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=False, litter__isnull=True
+                    )
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=True, litter__isnull=False
+                    )
+                ),
+                name="document_record_one_animal_source",
+            )
+        ]
+
+    def clean(self):
+        sources = [self.dog, self.puppy, self.litter]
+        selected_count = sum(bool(source) for source in sources)
+
+        if selected_count == 0:
+            raise ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
+        if selected_count > 1:
+            raise ValidationError(
+                "Dokument może być przypisany tylko do jednego źródła naraz."
+            )
+
+    def __str__(self):
+        if self.dog:
+            return f"{self.dog}: {self.category} - {self.document_name}"
+        if self.puppy:
+            return f"{self.puppy}: {self.category} - {self.document_name}"
+        return f"{self.litter}: {self.category} - {self.document_name}"
+
+
+class Measurement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania")
+    date = models.DateField(blank=False, null=False, verbose_name="Data pomiaru")
+
+    # Powiązania (dokładnie tak jak miałeś)
+    dog = models.ForeignKey(
+        "kennel.Dog",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Pies dorosły",
+    )
+    puppy = models.ForeignKey(
+        "kennel.Puppy",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        verbose_name="Szczenię",
+    )
+
+    # --- PARAMETRY (Wszystkie opcjonalne!) ---
+    weight = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name="Waga (kg)",
+        help_text="Wpisz wagę w kg (np. 15.5)",
+    )
+    height = models.FloatField(
+        blank=True, null=True, verbose_name="Wzrost w kłębie (cm)"
+    )
+    chest_girth = models.FloatField(
+        blank=True, null=True, verbose_name="Obwód klatki (cm)"
+    )
+    head_girth = models.FloatField(
+        blank=True, null=True, verbose_name="Obwód głowy (cm)"
+    )
+    body_length = models.FloatField(
+        blank=True, null=True, verbose_name="Długość tułowia (cm)"
+    )
+    temperature = models.FloatField(
+        blank=True, null=True, verbose_name="Temperatura (°C)"
+    )
+
+    photo = models.ImageField(
+        upload_to="measurements/photos/",
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie sylwetki",
+    )
+
+    # Skala kondycji ciała (Body Condition Score)
+    bcs = models.PositiveSmallIntegerField(
+        blank=True,
+        null=True,
+        verbose_name="Kondycja ciała (BCS)",
+        help_text="Skala 1-9 (1-wychudzenie, 5-idealna, 9-otyłość)",
+    )
+
+    # Dziennik / Kamienie milowe
+    notes = models.TextField(
+        blank=True, null=True, verbose_name="Notatki / Kamienie milowe"
+    )
+
+    class Meta:
+        ordering = ["-date", "-created_at"]
+        verbose_name = "Pomiar"
+        verbose_name_plural = "Pomiary"
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(dog__isnull=False, puppy__isnull=True)
+                    | models.Q(dog__isnull=True, puppy__isnull=False)
+                ),
+                name="measurement_one_animal_source",
+            )
+        ]
+
+    def clean(self):
+        sources = [self.dog, self.puppy]
+        selected_count = sum(bool(source) for source in sources)
+
+        if selected_count == 0:
+            raise ValidationError("Musisz wybrać psa LUB szczeniaka.")
+        if selected_count > 1:
+            raise ValidationError(
+                "Pomiar może być przypisany tylko do jednego zwierzęcia naraz."
+            )
+
+    def __str__(self):
+        animal = self.dog if self.dog else self.puppy
+        return f"{animal} - {self.date.strftime('%d.%m.%Y')}"

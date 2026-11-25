@@ -1,0 +1,116 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Dodaj szczenię - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+
+    <div class="mb-6">
+        <h2 class="text-sm font-black tracking-widest text-indigo-600 uppercase">Zarządzanie miotami</h2>
+        <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase [word-spacing:4px]">Dodaj nowe szczenię</h1>
+        <p class="text-sm text-gray-500 italic">Wprowadź podstawowe dane oraz identyfikatory dla szczeniaka.</p>
+    </div>
+
+    <form method="POST" enctype="multipart/form-data" id="puppy-form" class="space-y-6" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="p-4 mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl shadow-md">
+                <p class="font-black uppercase text-xs mb-2 tracking-widest">Wystąpiły błędy:</p>
+                <ul class="list-disc list-inside text-sm font-medium">
+
+                    {% for field in form %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <li><span class="font-bold">{{ field.label }}:</span> {{ error|striptags }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                Dane podstawowe
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.litter.label }}</label>
+                    {{ form.litter }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.name.label }}</label>
+                    {{ form.name }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.gender.label }}</label>
+                    {{ form.gender }}
+                </div>
+                <div class="md:col-span-2">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.color.label }}</label>
+                    {{ form.color }}
+                </div>
+                <div class="md:col-span-4 mt-2 pt-4 border-t border-gray-50">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-3">Zdjęcie profilowe (Awatar)</label>
+                    <div class="flex-1 w-full max-w-sm">
+                        <label for="{{ form.profile_picture.id_for_label }}" id="upload-label" class="flex items-center gap-4 p-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer group m-0">
+                            <div id="upload-icon-container" class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 group-hover:text-indigo-600 transition-transform shrink-0">
+                                <svg id="upload-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <svg id="success-icon" class="w-5 h-5 hidden text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <span id="upload-main-text" class="block text-[11px] font-black text-gray-900 uppercase tracking-wider truncate transition-colors">Wgraj zdjęcie profilowe</span>
+                                <span id="upload-sub-text" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block transition-colors mt-0.5">JPG, PNG • Max 5MB</span>
+                            </div>
+                        </label>
+                        <div class="hidden">
+                            {{ form.profile_picture }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                Identyfikacja i Status
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.internal_id.label }}</label>
+                    {{ form.internal_id }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.status.label }}</label>
+                    {{ form.status }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.chip_number.label }}</label>
+                    {{ form.chip_number }}
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-1.5">{{ form.tattoo_number.label }}</label>
+                    {{ form.tattoo_number }}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 pt-4 mb-10">
+            <a href="{% url 'dashboard_puppy' %}" class="flex-1 flex justify-center rounded-xl bg-white border border-gray-200 py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+                Anuluj
+            </a>
+            <button type="submit" class="flex-1 flex justify-center rounded-xl bg-indigo-600 py-3 text-xs font-black text-white shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.01] uppercase tracking-widest">
+                Zapisz szczenię
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}

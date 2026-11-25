@@ -10,11 +10,22 @@ login.html:
 public_base.html:
 -po zalogowaniu uzytkownik w miejscu zaloguj się oraz zarejestruj się widzi wyloguj się oraz panel
 
+dashboard.html:
+-dodanie działającej funkcji szybkich akcji
+-działająca oś czasu i warte uwagi
+
+wszystkie dodawanie w dashboardach:
+walidacja limitów po dodaniu pakietów subskrypcyjnych
 
 
+#TODO
+Aktualizacja Accordion row dla miotów i szczeniąt (zmiana kolorów nagłówków)
+Dodanie podstrony dla dog i puppy gdzie będzie dokładna analiza wzrostu i wagi
+Dziennik rozwoju czyli podstrony measurements tak aby miały wykresy i wszystkie parametry rozpisane
+POPRAWIENIE WYSWIETLANIA SIĘ ZDJEC AWATAROWYCH
 
-
-
+#TODO
+Po zmianie planu poprzedni plan powinien zostać automatycznie anulowany, a jego ważność zakończona. Nowy plan powinien zacząć się od momentu zmiany, a nie po wygaśnięciu poprzedniego.
 
 Jak mogą wyglądać plany subskrybcyjne?
 legenda:
@@ -26,41 +37,78 @@ Gdy pies zostanie dodany do archiwalnych - może zostać dodany spowrotem za 6 m
 
 Limit miotów to po prostu limit ile miotów może dodać użykownik w jednym roku subskrybcyjnym
 
+Modyfikacja psów/miotów/szczeniaków jest dozwolona przez 3 dni od dodania chyba że:
+Zostało ono użyte np w potomstwie
+#TODO AKTUALIZACJA PLIKU CENNIK.html
 
 1.Start
 Limit psów operacyjnych: 5
 limit psów archiwalnych: 50
 Limit miotów: 2
-Cena miesięczna: 49zł
-cena roczna: 490zł
+Cena miesięczna: 39zł
+cena roczna: 390zł
 Generator PiT:
 -płatność roczna - dostęp natychmiastowy
 -płatność miesięczna - dostęp po 6 miesiącach
-
+pojemność 5GB
 
 2.Pro
 Limit psów operacyjnych: 12
 limit psów archiwalnych: 500
 Limit miotów: 6
-Cena miesięczna: 89zł
-cena roczna: 890zł
+Cena miesięczna: 79zł
+cena roczna: 790zł
 Generator PiT:
 -płatność roczna - dostęp natychmiastowy
 -płatność miesięczna - dostęp po 4 miesiącach
-
-
+pojemność 15GB
 
 3.VIP
 Limit psów operacyjnych: bez limitu
 limit psów archiwalnych: bez limitu
 Limit miotów: bez limitu
-Cena miesięczna: 169zł
-cena roczna: 1690zł
+Cena miesięczna: 149zł
+cena roczna: 1490zł
 Generator PiT:
 -płatność roczna - dostęp natychmiastowy
 -płatność miesięczna - dostęp po 3 miesiącach
+pojemność 50GB
 
 
-4*
-Gdy użytkownikowi skończy się miejsce na psy może dokupić 50 miejsc w bazie danych za kwotę 39zł
 
+
+
+OSTATNIE POLECENIE CLOUD
+Task 1 — Model Updates (accounts/models.py)
+  - Added subscription_activated_at = DateTimeField(null/blank) field
+  - Added dateutil.relativedelta import at module level
+  - Added is_continuity_broken property: True if >7 days past expiry (or no subscription)
+  - Added days_remaining property: integer days until expiry (0 if expired)
+  - Added has_pit_access property: checks yearly-plan payment or monthly-plan tenure threshold
+  - Added pit_access_months_remaining property: months until PiT access (monthly plans only, None otherwise)
+  - Added extend_subscription(months=1) method: stacks onto existing valid_until if continuity intact, resets activated_at and starts fresh if broken
+
+  Task 2 — Selectable Trial (accounts/forms.py)
+  - Added plan = ModelChoiceField to BreederRegistrationForm (lazy queryset via __init__ to avoid circular import)
+  - Updated save() to set current_plan, subscription_activated_at = now, subscription_valid_until = now + 2 months (via relativedelta)
+
+  Task 3 — Profile POST (accounts/views.py + template)
+  - Added country to the sensitive fields POST handler
+  - Fixed template input name mismatches: address1 → address_line_one, address2 → address_line_two, postal → postal_code; and the corresponding user.address1 → user.address_line_one value bindings (these were silently broken
+  before)
+
+  Task 4 — PiT Access (billing/models.py)
+  - Added pit_access_monthly_threshold = PositiveSmallIntegerField(null/blank) to SubscriptionPlan
+
+  Task 5 — UI & Admin (dashboard_your_profile.html, accounts/admin.py)
+  - Template: added "Dni pozostałe" row with colour-coded counter (green >7d, yellow 1–7d, red 0)
+  - Template: added "Dostęp do PiT" row — green "Dostępny" badge or orange "Dostępny za X mies." badge
+  - Admin: added subscription_activated_at to the Subskrypcja fieldset alongside subscription_valid_until and current_plan
+
+  Task 6 — Documentation (docs/DATABASE.md)
+  - Added subscription_activated_at and pit_access_monthly_threshold to model tables
+  - Replaced single account_status property note with full computed-properties list
+  - Added new Subscription Lifecycle section covering registration trial, status transitions, 7-day continuity rule, PiT access rules (with threshold table), and downgrade constraint
+
+  ▎ Reminder: Run python manage.py makemigrations && python manage.py migrate to apply the new subscription_activated_at and pit_access_monthly_threshold DB columns. The registration template (home_pages/register.html) also
+  ▎ needs a {{ form.plan }} field added to expose the plan dropdown to users.

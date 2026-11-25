@@ -1,0 +1,240 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Dodaj miot - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+
+    <div class="mb-6">
+        <h2 class="text-sm font-black tracking-widest text-indigo-600 uppercase">Zarządzanie hodowlą</h2>
+        <h1 class="text-2xl font-black tracking-tight text-gray-900 uppercase [word-spacing:4px]">Dodaj nowy miot</h1>
+        <p class="text-sm text-gray-500 italic">Wypełnij informacje o rodzicach, kryciu oraz statystykach miotu.</p>
+    </div>
+
+    <form method="POST" id="litter-form" class="space-y-6" novalidate>
+        {% csrf_token %}
+
+        {% if form.errors %}
+            <div class="p-4 mb-6 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-xl shadow-md">
+                <p class="font-black uppercase text-xs mb-2 tracking-widest">Wystąpiły błędy:</p>
+                <ul class="list-disc list-inside text-sm font-medium">
+
+                    {% for field in form %}
+                        {% if field.errors %}
+                            {% for error in field.errors %}
+                                <li><span class="font-bold">{{ field.label }}:</span> {{ error|striptags }}</li>
+                            {% endfor %}
+                        {% endif %}
+                    {% endfor %}
+
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+
+                </ul>
+            </div>
+        {% endif %}
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">1</span>
+                Podstawowe Informacje
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Litera miotu</label>
+                    {{ form.litter_letter }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Status miotu</label>
+                    {{ form.status }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Rasa</label>
+                    {{ form.breed }}
+                </div>
+                <div class="md:col-span-4 mt-2 pt-4 border-t border-gray-50">
+                    <label class="block text-[11px] font-black text-gray-600 uppercase tracking-widest mb-3">Zdjęcie okładkowe (Tło miotu)</label>
+                    <div class="flex-1 w-full max-w-sm">
+                        <label for="{{ form.cover_photo.id_for_label }}" id="upload-label" class="flex items-center gap-4 p-3 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl hover:border-indigo-400 hover:bg-indigo-50/50 transition-all cursor-pointer group m-0">
+                            <div id="upload-icon-container" class="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-indigo-500 group-hover:scale-110 group-hover:text-indigo-600 transition-transform shrink-0">
+                                <svg id="upload-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                                <svg id="success-icon" class="w-5 h-5 hidden text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                            <div class="flex-1 overflow-hidden">
+                                <span id="upload-main-text" class="block text-[11px] font-black text-gray-900 uppercase tracking-wider truncate transition-colors">Wgraj zdjęcie okładkowe</span>
+                                <span id="upload-sub-text" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest block transition-colors mt-0.5">JPG, PNG • Max 5MB</span>
+                            </div>
+                        </label>
+                        <div class="hidden">
+                            {{ form.cover_photo }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">2</span>
+                Rodzice Miotu
+            </h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="p-5 bg-pink-50/50 rounded-xl border border-pink-100">
+                    <h4 class="font-black text-pink-600 uppercase text-xs mb-4">Wybór Matki</h4>
+                    
+                    <label class="flex items-center gap-3 mb-4 cursor-pointer">
+                        {{ form.is_external_mother }}
+                        <span class="text-sm font-medium text-gray-700">Matka spoza mojej hodowli</span>
+                    </label>
+
+                    <div id="internal-mother-wrapper" class="block">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Wybierz matkę ze stada</label>
+                        {{ form.mother }}
+                    </div>
+
+                    <div id="external-mother-wrapper" class="hidden space-y-3 mt-4 border-t border-pink-200 pt-4">
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Imię</label>{{ form.ext_mother_name }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Tytuły</label>{{ form.ext_mother_titles }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Nr PKR</label>{{ form.ext_mother_pkr_number }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Chip</label>{{ form.ext_mother_chip }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Maść</label>{{ form.ext_mother_color }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Badania</label>{{ form.ext_mother_health_tests }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Właściciel</label>{{ form.ext_mother_owner }}</div>
+                    </div>
+                </div>
+
+                <div class="p-5 bg-blue-50/50 rounded-xl border border-blue-100">
+                    <h4 class="font-black text-blue-600 uppercase text-xs mb-4">Wybór Ojca</h4>
+                    
+                    <label class="flex items-center gap-3 mb-4 cursor-pointer">
+                        {{ form.is_external_father }}
+                        <span class="text-sm font-medium text-gray-700">Ojciec spoza mojej hodowli</span>
+                    </label>
+
+                    <div id="internal-father-wrapper" class="block">
+                        <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Wybierz ojca ze stada</label>
+                        {{ form.father }}
+                    </div>
+
+                    <div id="external-father-wrapper" class="hidden space-y-3 mt-4 border-t border-blue-200 pt-4">
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Imię</label>{{ form.ext_father_name }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Tytuły</label>{{ form.ext_father_titles }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Nr PKR</label>{{ form.ext_father_pkr_number }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Chip</label>{{ form.ext_father_chip }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Maść</label>{{ form.ext_father_color }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Badania</label>{{ form.ext_father_health_tests }}</div>
+                        <div><label class="text-[10px] font-bold text-gray-500 uppercase">Właściciel</label>{{ form.ext_father_owner }}</div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">3</span>
+                Krycie i Narodziny
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Początek krycia</label>
+                    {{ form.mating_date_start }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Koniec krycia (opcjonalnie)</label>
+                    {{ form.mating_date_end }}
+                </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Data narodzin</label>
+                    {{ form.birth_date }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Miejsce krycia</label>
+                    {{ form.mating_place }}
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white py-6 px-6 shadow-xl border border-gray-100 rounded-2xl">
+            <h3 class="text-sm font-black text-gray-900 uppercase mb-5 pb-2 border-b border-gray-50 flex items-center gap-2">
+                <span class="w-5 h-5 bg-indigo-600 text-white rounded-full flex items-center justify-center text-[10px]">4</span>
+                Statystyki Szczeniąt
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Samców</label>
+                    {{ form.males_count }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Samic</label>
+                    {{ form.females_count }}
+                </div>
+                <div>
+                    <label class="text-[10px] font-bold text-red-500 uppercase tracking-widest">Zmarłe</label>
+                    {{ form.deceased_count }}
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-4 pt-4">
+            <a href="{% url 'dashboard_litter' %}" class="flex-1 flex justify-center rounded-xl bg-white border border-gray-200 py-3 text-xs font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 transition-all text-center">
+                Anuluj
+            </a>
+            <button type="submit" class="flex-1 flex justify-center rounded-xl bg-indigo-600 py-3 text-xs font-black text-white shadow-lg hover:bg-indigo-700 transition-all transform hover:scale-[1.01] uppercase tracking-widest">
+                Zapisz Miot
+            </button>
+        </div>
+    </form>
+
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const motherCheckbox = document.getElementById('id_is_external_mother');
+        const internalMotherWrapper = document.getElementById('internal-mother-wrapper');
+        const externalMotherWrapper = document.getElementById('external-mother-wrapper');
+        const motherSelect = document.getElementById('id_mother'); // Pole select matki
+
+        const fatherCheckbox = document.getElementById('id_is_external_father');
+        const internalFatherWrapper = document.getElementById('internal-father-wrapper');
+        const externalFatherWrapper = document.getElementById('external-father-wrapper');
+        const fatherSelect = document.getElementById('id_father'); // Pole select ojca
+
+        function toggleMotherFields() {
+            if (motherCheckbox.checked) {
+                internalMotherWrapper.classList.add('hidden');
+                externalMotherWrapper.classList.remove('hidden');
+                motherSelect.required = false; // Usuwamy wymóg, by przeglądarka nie blokowała
+            } else {
+                internalMotherWrapper.classList.remove('hidden');
+                externalMotherWrapper.classList.add('hidden');
+                motherSelect.required = true; // Przywracamy wymóg dla psów z hodowli
+            }
+        }
+
+        function toggleFatherFields() {
+            if (fatherCheckbox.checked) {
+                internalFatherWrapper.classList.add('hidden');
+                externalFatherWrapper.classList.remove('hidden');
+                fatherSelect.required = false; // Usuwamy wymóg
+            } else {
+                internalFatherWrapper.classList.remove('hidden');
+                externalFatherWrapper.classList.add('hidden');
+                fatherSelect.required = true; // Przywracamy wymóg
+            }
+        }
+
+        motherCheckbox.addEventListener('change', toggleMotherFields);
+        fatherCheckbox.addEventListener('change', toggleFatherFields);
+
+        // Uruchomienie przy starcie
+        toggleMotherFields();
+        toggleFatherFields();
+    });
+</script>
+{% endblock %}

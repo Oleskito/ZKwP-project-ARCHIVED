@@ -52,10 +52,11 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    'csp.middleware.CSPMiddleware',
+    "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -70,7 +71,7 @@ ROOT_URLCONF = "core_config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates'],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -124,10 +125,14 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "pl"
 
-TIME_ZONE = "UTC"
+LANGUAGES = [
+    ("pl", "Polski"),
+]
+
+TIME_ZONE = "Europe/Warsaw"
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
 
 
@@ -144,7 +149,14 @@ AUTH_USER_MODEL = "accounts.Breeder"
 FIELD_ENCRYPTION_KEY = os.getenv("FIELD_ENCRYPTION_KEY")
 TURNSTILE_SECRET_KEY = os.getenv("TURNSTILE_SECRET_KEY")
 
+STRIPE_PUBLIC_KEY = os.getenv("STRIPE_PUBLIC_KEY")
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET")
+
 
 LOGIN_REDIRECT_URL = "dashboard/"
 LOGOUT_REDIRECT_URL = "home"
 LOGIN_URL = "login"
+
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"

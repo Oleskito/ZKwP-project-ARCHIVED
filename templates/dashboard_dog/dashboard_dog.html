@@ -1,0 +1,248 @@
+{% extends 'dashboard/kennel_panel_base.html' %}
+
+{% block title %}Twoje Psy - Panel Hodowcy{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <h1 class="text-2xl font-black text-gray-900 uppercase tracking-tight mb-6">Twoje Psy</h1>
+
+        <a href="{% url 'dog_add' %}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-indigo-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path>
+            </svg>
+            Dodaj psa
+        </a>
+    </div>
+
+    <div class="flex gap-4 border-b border-gray-200 mb-6">
+        <button id="btn-active" class="pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider transition-all">
+            Aktualne ({{ active_count }})
+        </button>
+        <button id="btn-archived" class="pb-3 text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all">
+            Archiwalne ({{ archived_count }})
+        </button>
+    </div>
+
+    <form method="GET" id="main-filter-form" class="mb-6">
+    <input type="hidden" name="tab" id="tab-input" value="{{ active_tab }}">
+        <div class="flex flex-wrap gap-3">
+
+            <div class="relative flex-1 min-w-75">
+                <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </span>
+                <input type="text" name="q" value="{{ current_q }}" placeholder="Imię, Chip, Tatuaż, PKR..."
+                       class="block w-full pl-10 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white shadow-sm">
+            </div>
+
+            <div class="relative">
+                <button type="button" onclick="toggleMenu('filter-panel')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 uppercase tracking-wide shadow-sm transition-all">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+                    </svg>
+                    Filtruj
+                </button>
+
+                <div id="filter-panel" class="hidden absolute right-0 mt-2 w-[320px] bg-white border border-gray-100 shadow-2xl rounded-2xl p-5 z-50">
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Płeć</p>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="gender" value="male" {% if 'male' in current_genders %}checked{% endif %} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"> Samiec
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="gender" value="female" {% if 'female' in current_genders %}checked{% endif %} class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"> Samica
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Rasa</p>
+                            <div class="max-h-32 overflow-y-auto space-y-2 custom-scrollbar">
+                                {% for breed_name in available_breeds %}
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="breed" value="{{ breed_name }}" {% if breed_name in current_breeds %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> {{ breed_name }}
+                                </label>
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Status</p>
+
+                            <div id="status-group-active" class="space-y-2">
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="status" value="active" {% if 'active' in current_statuses %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> Aktywny
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="status" value="in_preparation" {% if 'in_preparation' in current_statuses %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> W przygotowaniu
+                                </label>
+                            </div>
+
+                            <div id="status-group-archived" class="hidden space-y-2">
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="status" value="inactive" {% if 'inactive' in current_statuses %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> Nieaktywny
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="status" value="sold" {% if 'sold' in current_statuses %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> Sprzedany
+                                </label>
+                                <label class="flex items-center gap-2 text-sm text-gray-600 cursor-pointer">
+                                    <input type="checkbox" name="status" value="deceased" {% if 'deceased' in current_statuses %}checked{% endif %} class="rounded border-gray-300 text-indigo-600"> Zmarły
+                                </label>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Data urodzenia (Od - Do)</p>
+                            <div class="grid grid-cols-2 gap-2">
+                                <input type="date" name="date_from" value="{{ current_date_from }}" class="text-xs p-2 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                                <input type="date" name="date_to" value="{{ current_date_to }}" class="text-xs p-2 border border-gray-200 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500">
+                            </div>
+                        </div>
+
+                        <div class="flex gap-2 pt-4 border-t border-gray-100">
+                            <a href="{% url 'dashboard_dog' %}" class="flex-1 px-4 py-2.5 border border-gray-200 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-gray-50 text-center transition-colors">
+                                Resetuj
+                            </a>
+                            <button type="submit" class="flex-1 px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 shadow-md shadow-indigo-100 transition-colors">
+                                Zastosuj
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="relative">
+                <button type="button" onclick="toggleMenu('sort-panel')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 uppercase tracking-wide shadow-sm transition-all">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12"></path>
+                    </svg>
+                    Sortuj
+                </button>
+
+                <div id="sort-panel" class="hidden absolute right-0 mt-2 w-56 bg-white border border-gray-100 shadow-2xl rounded-2xl p-2 z-50">
+                    <button type="submit" name="sort" value="name_asc" class="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors {% if current_sort == 'name_asc' %}bg-indigo-50 text-indigo-600{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-700{% endif %}">
+                        Imię (A - Z)
+                    </button>
+                    <button type="submit" name="sort" value="name_desc" class="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors {% if current_sort == 'name_desc' %}bg-indigo-50 text-indigo-600{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-700{% endif %}">
+                        Imię (Z - A)
+                    </button>
+                    <button type="submit" name="sort" value="date_desc" class="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors {% if current_sort == 'date_desc' %}bg-indigo-50 text-indigo-600{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-700{% endif %}">
+                        Najmłodsze
+                    </button>
+                    <button type="submit" name="sort" value="date_asc" class="w-full text-left px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-colors {% if current_sort == 'date_asc' %}bg-indigo-50 text-indigo-600{% else %}text-gray-500 hover:bg-gray-50 hover:text-gray-700{% endif %}">
+                        Najstarsze
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="list-active" class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[70vh] overflow-y-auto custom-scrollbar">
+    {% for dog in active_dogs %}
+        {% include 'dashboard_dog/dashboard_dog_accordion_row.html' %}
+    {% empty %}
+        <div class="p-12 text-center text-gray-400 italic">Brak psów spełniających kryteria w tej sekcji.</div>
+    {% endfor %}
+</div>
+
+<div id="list-archived" class="hidden bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden max-h-[70vh] overflow-y-auto custom-scrollbar">
+    {% for dog in archived_dogs %}
+        {% include 'dashboard_dog/dashboard_dog_accordion_row.html' %}
+    {% empty %}
+        <div class="p-12 text-center text-gray-400 italic font-bold uppercase tracking-widest text-sm">Archiwum jest puste lub nic nie pasuje.</div>
+    {% endfor %}
+</div>
+
+<script>
+const btnActive = document.getElementById('btn-active');
+const btnArchived = document.getElementById('btn-archived');
+const listActive = document.getElementById('list-active');
+const listArchived = document.getElementById('list-archived');
+const tabInput = document.getElementById('tab-input');
+const filterForm = document.getElementById('main-filter-form');
+
+// Funkcja ustawiająca widok przy starcie
+function initView() {
+    const currentTab = tabInput.value;
+    if (currentTab === 'archived') {
+        renderTab(false);
+    } else {
+        renderTab(true);
+    }
+}
+
+function renderTab(showActive) {
+    const statusActiveGroup = document.getElementById('status-group-active');
+    const statusArchivedGroup = document.getElementById('status-group-archived');
+
+    if (showActive) {
+        listActive.classList.remove('hidden');
+        listArchived.classList.add('hidden');
+        statusActiveGroup.classList.remove('hidden');
+        statusArchivedGroup.classList.add('hidden');
+        btnActive.className = "pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider transition-all";
+        btnArchived.className = "pb-3 text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all";
+    } else {
+        listArchived.classList.remove('hidden');
+        listActive.classList.add('hidden');
+        statusArchivedGroup.classList.remove('hidden');
+        statusActiveGroup.classList.add('hidden');
+        btnArchived.className = "pb-3 text-sm font-bold text-indigo-600 border-b-2 border-indigo-600 uppercase tracking-wider transition-all";
+        btnActive.className = "pb-3 text-sm font-bold text-gray-400 hover:text-gray-600 border-b-2 border-transparent uppercase tracking-wider transition-all";
+    }
+}
+
+// Kliknięcie w tab - RESETUJE status i wysyła form
+function handleTabChange(targetTab) {
+    tabInput.value = targetTab;
+
+    // Pobierz formularz
+    const form = document.getElementById('main-filter-form');
+
+    // Czyścimy WSZYSTKIE filtry przed przejściem do innej zakładki:
+    // 1. Czyścimy pola tekstowe i daty
+    form.querySelectorAll('input[type="text"], input[type="date"]').forEach(input => input.value = '');
+    // 2. Odznaczamy wszystkie checkboxy i radia
+    form.querySelectorAll('input[type="checkbox"], input[type="radio"]').forEach(cb => cb.checked = false);
+    // 3. Resetujemy listy rozwijane (np. rasę czy miot) do pierwszej pozycji
+    form.querySelectorAll('select').forEach(sel => sel.selectedIndex = 0);
+
+    form.submit();
+}
+
+btnActive.addEventListener('click', () => handleTabChange('active'));
+btnArchived.addEventListener('click', () => handleTabChange('archived'));
+
+// Menu Toggle
+function toggleMenu(id) {
+    const panels = ['filter-panel', 'sort-panel'];
+    panels.forEach(p => {
+        const el = document.getElementById(p);
+        if (p === id) el.classList.toggle('hidden');
+        else el.classList.add('hidden');
+    });
+}
+
+window.addEventListener('click', (e) => {
+    if (!e.target.closest('.relative')) {
+        document.getElementById('filter-panel').classList.add('hidden');
+        document.getElementById('sort-panel').classList.add('hidden');
+    }
+});
+
+initView();
+</script>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: #E5E7EB; border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #D1D5DB; }
+</style>
+{% endblock %}
