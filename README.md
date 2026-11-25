@@ -260,7 +260,7 @@ Projekt ZKwP/
 
 ## 👨‍💻 Autor & Kontakt
 
-Projekt zrealizowany przez **Aleksandra (Oleka) Strycharza** jako nowoczesne narzędzie SaaS dla polskiej kynologii.
+Projekt zrealizowany przez **Aleksandra Ostrycharza** jako nowoczesne narzędzie SaaS dla polskiej kynologii.
 
 - **GitHub**: [@Oleskito](https://github.com/Oleskito)
 - **Email**: [olekpatrykostrycharz@gmail.com](mailto:olekpatrykostrycharz@gmail.com)
