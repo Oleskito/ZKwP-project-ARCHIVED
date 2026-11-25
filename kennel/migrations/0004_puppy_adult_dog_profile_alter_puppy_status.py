@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("kennel", "0003_alter_litter_father_alter_litter_mother"),
     ]

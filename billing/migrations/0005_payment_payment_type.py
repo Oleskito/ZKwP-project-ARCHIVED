@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("billing", "0004_remove_subscriptionplan_duration_days_and_more"),
     ]

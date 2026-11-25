@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("accounts", "0003_breeder_company_name_breeder_kennel_logo_and_more"),
     ]

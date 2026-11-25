@@ -171,15 +171,21 @@ class Breeder(AbstractUser):
     company_name = models.CharField(
         max_length=150, blank=True, verbose_name="Nazwa firmy"
     )
-    nip = encrypted_fields.EncryptedCharField(max_length=15, blank=True, verbose_name="NIP")
+    nip = encrypted_fields.EncryptedCharField(
+        max_length=15, blank=True, verbose_name="NIP"
+    )
     pesel = encrypted_fields.EncryptedCharField(
         max_length=11,
         blank=True,
         null=True,
         verbose_name="PESEL",
-        validators=[RegexValidator(r"^\d{11}$", "PESEL musi składać się z dokładnie 11 cyfr.")],
+        validators=[
+            RegexValidator(r"^\d{11}$", "PESEL musi składać się z dokładnie 11 cyfr.")
+        ],
     )
-    tax_office = models.CharField(max_length=255, blank=True, null=True, verbose_name="Urząd skarbowy")
+    tax_office = models.CharField(
+        max_length=255, blank=True, null=True, verbose_name="Urząd skarbowy"
+    )
     birth_date = models.DateField(null=True, blank=True, verbose_name="Data urodzenia")
     notes = models.CharField(
         max_length=500, blank=True, verbose_name="Notatki np. strona internetowa"
@@ -233,24 +239,23 @@ class Breeder(AbstractUser):
         if not self.current_plan:
             return 10
         name = self.current_plan.name.lower()
-        if 'vip' in name:
+        if "vip" in name:
             return 3
-        if 'pro' in name:
+        if "pro" in name:
             return 7
         return 10
 
     @property
     def paid_months_last_15(self) -> int:
         from billing.models import Payment
+
         cutoff = timezone.now() - relativedelta(months=15)
-        payments = (
-            self.payments
-            .filter(status=Payment.Status.COMPLETED, payment_date__gte=cutoff)
-            .select_related('plan')
-        )
+        payments = self.payments.filter(
+            status=Payment.Status.COMPLETED, payment_date__gte=cutoff
+        ).select_related("plan")
         total = 0
         for p in payments:
-            total += 12 if getattr(p.plan, 'interval', '') == 'yearly' else 1
+            total += 12 if getattr(p.plan, "interval", "") == "yearly" else 1
         return total
 
     @property

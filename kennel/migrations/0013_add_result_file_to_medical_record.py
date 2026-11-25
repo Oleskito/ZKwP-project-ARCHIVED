@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("kennel", "0012_remove_dog_adult_dog_profile_and_more"),
     ]

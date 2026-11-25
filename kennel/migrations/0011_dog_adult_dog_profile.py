@@ -5,7 +5,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("kennel", "0010_dog_profile_picture_litter_cover_photo_and_more"),
     ]

@@ -2,7 +2,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("billing", "0007_subscriptionplan_pit_access_monthly_threshold"),
     ]

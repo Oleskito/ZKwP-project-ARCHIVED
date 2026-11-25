@@ -9,12 +9,11 @@ from .models import Breeder
 
 class BreederRegistrationForm(forms.ModelForm):
     password = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': '********'}),
-        label="Hasło"
+        widget=forms.PasswordInput(attrs={"placeholder": "********"}), label="Hasło"
     )
     password_confirm = forms.CharField(
-        widget=forms.PasswordInput(attrs={'placeholder': '********'}),
-        label="Powtórz hasło"
+        widget=forms.PasswordInput(attrs={"placeholder": "********"}),
+        label="Powtórz hasło",
     )
 
     class Meta:
@@ -66,4 +65,4 @@ class BreederCreationForm(forms.ModelForm):
 class BreederChangeForm(UserChangeForm):
     class Meta:
         model = Breeder
-        fields = '__all__'
+        fields = "__all__"

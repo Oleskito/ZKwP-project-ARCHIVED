@@ -91,13 +91,17 @@ def register_view(request):
                 user.save()
             except Exception as e:
                 logging.getLogger(__name__).exception("Błąd podczas zapisu użytkownika")
-                messages.error(request, "Wystąpił błąd podczas tworzenia konta. Spróbuj ponownie.")
+                messages.error(
+                    request, "Wystąpił błąd podczas tworzenia konta. Spróbuj ponownie."
+                )
                 messages.error(request, f"Szczegóły błędu: {str(e)}")
                 return render(request, "home_pages/register.html", {"form": form})
             messages.success(request, "Konto utworzone! Możesz się teraz zalogować.")
             return redirect("login")
         else:
-            messages.error(request, "Formularz zawiera błędy. Popraw pola zaznaczone na czerwono.")
+            messages.error(
+                request, "Formularz zawiera błędy. Popraw pola zaznaczone na czerwono."
+            )
     else:
         form = BreederRegistrationForm()
 
@@ -158,6 +162,7 @@ def your_profile_view(request) -> HttpResponse:
         if user.stripe_customer_id:
             try:
                 import stripe
+
                 # Nadpisujemy adres e-mail w obiekcie Customer w Stripe
                 stripe.Customer.modify(
                     user.stripe_customer_id,
@@ -166,8 +171,11 @@ def your_profile_view(request) -> HttpResponse:
             except Exception as e:
                 # Rejestrujemy błąd w logach, ale NIE przerywamy działania aplikacji.
                 # Dzięki temu, nawet jeśli Stripe ma awarię, hodowca i tak zapisze profil.
-                logging.getLogger(__name__).warning("Błąd aktualizacji e-maila w Stripe dla usera %s: %s", user.id,
-                                                    str(e))
+                logging.getLogger(__name__).warning(
+                    "Błąd aktualizacji e-maila w Stripe dla usera %s: %s",
+                    user.id,
+                    str(e),
+                )
         messages.success(request, "Dane zostały zaktualizowane.")
         return redirect("your_profile")
 

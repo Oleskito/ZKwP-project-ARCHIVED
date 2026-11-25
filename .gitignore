@@ -1,36 +1,52 @@
-# Foldery systemowe i kontrola wersji
-.git/
-.idea/
+# ==============================================================================
+# .gitignore - Przydomek.pl
+# ==============================================================================
 
-# Środowiska wirtualne
+# IDE i edytory kodu
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Środowiska wirtualne Python
 .venv/
 venv/
 env/
+ENV/
 
-# Cache i pliki kompilowane
+# Pamięć podręczna i pliki kompilowane
 __pycache__/
 **/__pycache__/**
-*.pyc
+*.py[cod]
+*$py.class
+.ruff_cache/
+.pytest_cache/
 
-# Bazy danych i sekrety
+# Bazy danych, kopie zapasowe i sekrety
 .env
 *.env
+!.env.example
 .pgpass
 dump.sql
+*.sqlite3
+*.db
 pg_data/
 DB_BACKUPS/
 
-# Frontend i inne foldery
+# Pliki logów
+*.log
+log.txt
+*.log.*
+
+# Pliki mediów użytkownika (zdjęcia psów, skany badań, załączniki)
+media/*
+!media/.gitkeep
+
+# Frontend & narzędzia kompilacji
 node_modules/
-Przepisy/
-Static/
 Styles/output.css
 tailwindcss.exe
-package.json
-package-lock.json
-*.log
-*.sqlite3
-*.db
-*.pdf
-*.jpg
-*.png
+
+# Notatki wewnętrzne i robocze
+Przepisy/

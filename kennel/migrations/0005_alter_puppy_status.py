@@ -4,7 +4,6 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ("kennel", "0004_puppy_adult_dog_profile_alter_puppy_status"),
     ]

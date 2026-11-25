@@ -55,17 +55,19 @@ class Dog(models.Model):
         max_length=100,
         verbose_name="Imię psa",
     )
-    origin_kennel = models.CharField(max_length=100, blank=True, verbose_name="Przydomek psa")
+    origin_kennel = models.CharField(
+        max_length=100, blank=True, verbose_name="Przydomek psa"
+    )
     gender = models.CharField(
         max_length=10,
         blank=True,
-        choices=Gender.choices, #type:ignore
+        choices=Gender.choices,  # type:ignore
         verbose_name="Płeć psa",
     )
     breeding_status = models.CharField(
         max_length=30,
         blank=True,
-        choices=BreedingStatus.choices, #type:ignore
+        choices=BreedingStatus.choices,  # type:ignore
         verbose_name="Status hodowlany",
     )
     birth_date = models.DateField(
@@ -110,10 +112,10 @@ class Dog(models.Model):
     co_owner_country = CountryField(default="PL", verbose_name="Kraj")
 
     profile_picture = models.ImageField(
-        upload_to='dogs/profiles/',
+        upload_to="dogs/profiles/",
         blank=True,
         null=True,
-        verbose_name="Zdjęcie profilowe"
+        verbose_name="Zdjęcie profilowe",
     )
 
     class Meta:
@@ -129,24 +131,24 @@ class Dog(models.Model):
     def __str__(self):
         if self.birth_date:
             return f"{self.name} ({self.birth_date})"
-        elif  self.chip_number:
+        elif self.chip_number:
             return f"{self.name} Chip: {self.chip_number}"
-        elif  self.tattoo_number:
+        elif self.tattoo_number:
             return f"{self.name} Tatuaż: {self.tattoo_number}"
         return self.name
 
     def clean(self):
         super().clean()
-        if self.father and self.father.gender != 'male':
-            raise ValidationError({'father': "Ojcem musi być samiec."})
-        if self.mother and self.mother.gender != 'female':
-            raise ValidationError({'mother': "Matką musi być samica."})
+        if self.father and self.father.gender != "male":
+            raise ValidationError({"father": "Ojcem musi być samiec."})
+        if self.mother and self.mother.gender != "female":
+            raise ValidationError({"mother": "Matką musi być samica."})
 
     def save(self, *args, **kwargs):
         archival_statuses = [
             self.BreedingStatus.INACTIVE,
             self.BreedingStatus.SOLD,
-            self.BreedingStatus.DECEASED
+            self.BreedingStatus.DECEASED,
         ]
 
         if self.breeding_status in archival_statuses:
@@ -254,7 +256,10 @@ class Litter(models.Model):
         max_length=10, blank=True, verbose_name="Litera miotu"
     )
     status = models.CharField(
-        max_length=20, blank=True, choices=Status.choices, verbose_name="Status miotu" #type:ignore
+        max_length=20,
+        blank=True,
+        choices=Status.choices,
+        verbose_name="Status miotu",  # type:ignore
     )
     # wybierane opcjonalnie jeśli ojciec lub matka jest z innej hodowli:
     father_data_snapshot = models.JSONField(
@@ -268,10 +273,10 @@ class Litter(models.Model):
         verbose_name="Dane o samicy i właścicielu spoza hodowli",
     )
     cover_photo = models.ImageField(
-        upload_to='litters/covers/',
+        upload_to="litters/covers/",
         blank=True,
         null=True,
-        verbose_name="Zdjęcie w tle / okładka"
+        verbose_name="Zdjęcie w tle / okładka",
     )
 
     def clean(self):
@@ -279,11 +284,15 @@ class Litter(models.Model):
 
         # Ochrona przed podwójnym ojcem
         if self.father and self.father_data_snapshot:
-            raise ValidationError("Miot nie może mieć jednocześnie ojca przypisanego z bazy i ojca zewnętrznego.")
+            raise ValidationError(
+                "Miot nie może mieć jednocześnie ojca przypisanego z bazy i ojca zewnętrznego."
+            )
 
         # Ochrona przed podwójną matką
         if self.mother and self.mother_data_snapshot:
-            raise ValidationError("Miot nie może mieć jednocześnie matki przypisanej z bazy i matki zewnętrznej.")
+            raise ValidationError(
+                "Miot nie może mieć jednocześnie matki przypisanej z bazy i matki zewnętrznej."
+            )
 
     def save(self, *args, **kwargs):
         # Uruchamiamy clean() przed każdym zapisem, nawet z kodu lub panelu admina
@@ -323,18 +332,20 @@ class Puppy(models.Model):
         "kennel.Litter", on_delete=models.CASCADE, verbose_name="Miot szczeniaka"
     )
     adult_dog_profile = models.OneToOneField(
-        'Dog',
+        "Dog",
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name='original_puppy',
-        help_text="Jeśli szczenię zostało w hodowli, tu znajduje się link do jego dorosłego profilu."
+        related_name="original_puppy",
+        help_text="Jeśli szczenię zostało w hodowli, tu znajduje się link do jego dorosłego profilu.",
     )
 
     name = models.CharField(max_length=100, verbose_name="Imię i przydomek szczeniaka")
     color = models.CharField(max_length=45, blank=True, verbose_name="Umaszczenie")
     gender = models.CharField(
-        max_length=10, choices=Gender.choices, verbose_name="Płeć" #type:ignore
+        max_length=10,
+        choices=Gender.choices,
+        verbose_name="Płeć",  # type:ignore
     )
     chip_number = models.CharField(
         max_length=20, blank=True, null=True, verbose_name="Numer chipa"
@@ -349,17 +360,16 @@ class Puppy(models.Model):
     )
     status = models.CharField(
         max_length=50,
-        choices=Status.choices, #type:ignore
+        choices=Status.choices,  # type:ignore
         blank=True,
         verbose_name="Status szczeniaka",
     )
     profile_picture = models.ImageField(
-        upload_to='puppies/profiles/',
+        upload_to="puppies/profiles/",
         blank=True,
         null=True,
-        verbose_name="Zdjęcie profilowe"
+        verbose_name="Zdjęcie profilowe",
     )
-
 
     class Meta:
         constraints = [
@@ -475,9 +485,10 @@ class MedicalRecord(models.Model):
         verbose_name="Szczenię",
     )
     litter = models.ForeignKey(
-        'kennel.Litter',
+        "kennel.Litter",
         on_delete=models.CASCADE,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         verbose_name="Miot",
     )
     date = models.DateField(blank=True, null=True, verbose_name="Data badania")
@@ -505,9 +516,13 @@ class MedicalRecord(models.Model):
         constraints = [
             models.CheckConstraint(  # Dodaj 'models.' tutaj
                 condition=(
-                        models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True) |
-                        models.Q(dog__isnull=True, puppy__isnull=False, litter__isnull=True) |
-                        models.Q(dog__isnull=True, puppy__isnull=True, litter__isnull=False)
+                    models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True)
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=False, litter__isnull=True
+                    )
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=True, litter__isnull=False
+                    )
                 ),
                 name="medical_record_one_animal_source",
             )
@@ -520,7 +535,9 @@ class MedicalRecord(models.Model):
         if selected_count == 0:
             raise ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
         if selected_count > 1:
-            raise ValidationError("Dokument może być przypisany tylko do jednego źródła naraz.")
+            raise ValidationError(
+                "Dokument może być przypisany tylko do jednego źródła naraz."
+            )
 
     def __str__(self):
         if self.dog:
@@ -555,22 +572,27 @@ class DocumentRecord(models.Model):
         verbose_name="Szczenię",
     )
     litter = models.ForeignKey(
-        'kennel.Litter',
+        "kennel.Litter",
         on_delete=models.CASCADE,
-        null=True, blank=True,
+        null=True,
+        blank=True,
         verbose_name="Miot",
     )
     date = models.DateField(blank=True, null=True, verbose_name="Data dokumentu")
 
     category = models.CharField(
         max_length=20,
-        choices=Category.choices, #type:ignore
+        choices=Category.choices,  # type:ignore
         default=Category.OTHER,
-        verbose_name="Typ dokumentu"
+        verbose_name="Typ dokumentu",
     )
 
-    document_name = models.CharField(max_length=50, blank=True, null=True, verbose_name="Nazwa dokumentu")
-    document_file = models.FileField(upload_to="document/%Y/", null=True, blank=True, verbose_name="Plik dokumentu")
+    document_name = models.CharField(
+        max_length=50, blank=True, null=True, verbose_name="Nazwa dokumentu"
+    )
+    document_file = models.FileField(
+        upload_to="document/%Y/", null=True, blank=True, verbose_name="Plik dokumentu"
+    )
 
     class Meta:
         verbose_name = "Dokument"
@@ -578,9 +600,13 @@ class DocumentRecord(models.Model):
         constraints = [
             models.CheckConstraint(  # Dodaj 'models.' tutaj
                 condition=(
-                        models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True) |
-                        models.Q(dog__isnull=True, puppy__isnull=False, litter__isnull=True) |
-                        models.Q(dog__isnull=True, puppy__isnull=True, litter__isnull=False)
+                    models.Q(dog__isnull=False, puppy__isnull=True, litter__isnull=True)
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=False, litter__isnull=True
+                    )
+                    | models.Q(
+                        dog__isnull=True, puppy__isnull=True, litter__isnull=False
+                    )
                 ),
                 name="document_record_one_animal_source",
             )
@@ -593,7 +619,9 @@ class DocumentRecord(models.Model):
         if selected_count == 0:
             raise ValidationError("Musisz wybrać psa, szczeniaka LUB miot.")
         if selected_count > 1:
-            raise ValidationError("Dokument może być przypisany tylko do jednego źródła naraz.")
+            raise ValidationError(
+                "Dokument może być przypisany tylko do jednego źródła naraz."
+            )
 
     def __str__(self):
         if self.dog:
@@ -625,35 +653,57 @@ class Measurement(models.Model):
     )
 
     # --- PARAMETRY (Wszystkie opcjonalne!) ---
-    weight = models.FloatField(blank=True, null=True, verbose_name="Waga (kg)", help_text="Wpisz wagę w kg (np. 15.5)")
-    height = models.FloatField(blank=True, null=True, verbose_name="Wzrost w kłębie (cm)")
-    chest_girth = models.FloatField(blank=True, null=True, verbose_name="Obwód klatki (cm)")
-    head_girth = models.FloatField(blank=True, null=True, verbose_name="Obwód głowy (cm)")
-    body_length = models.FloatField(blank=True, null=True, verbose_name="Długość tułowia (cm)")
-    temperature = models.FloatField(blank=True, null=True, verbose_name="Temperatura (°C)")
+    weight = models.FloatField(
+        blank=True,
+        null=True,
+        verbose_name="Waga (kg)",
+        help_text="Wpisz wagę w kg (np. 15.5)",
+    )
+    height = models.FloatField(
+        blank=True, null=True, verbose_name="Wzrost w kłębie (cm)"
+    )
+    chest_girth = models.FloatField(
+        blank=True, null=True, verbose_name="Obwód klatki (cm)"
+    )
+    head_girth = models.FloatField(
+        blank=True, null=True, verbose_name="Obwód głowy (cm)"
+    )
+    body_length = models.FloatField(
+        blank=True, null=True, verbose_name="Długość tułowia (cm)"
+    )
+    temperature = models.FloatField(
+        blank=True, null=True, verbose_name="Temperatura (°C)"
+    )
 
-    photo = models.ImageField(upload_to='measurements/photos/', blank=True, null=True, verbose_name="Zdjęcie sylwetki")
+    photo = models.ImageField(
+        upload_to="measurements/photos/",
+        blank=True,
+        null=True,
+        verbose_name="Zdjęcie sylwetki",
+    )
 
     # Skala kondycji ciała (Body Condition Score)
     bcs = models.PositiveSmallIntegerField(
         blank=True,
         null=True,
         verbose_name="Kondycja ciała (BCS)",
-        help_text="Skala 1-9 (1-wychudzenie, 5-idealna, 9-otyłość)"
+        help_text="Skala 1-9 (1-wychudzenie, 5-idealna, 9-otyłość)",
     )
 
     # Dziennik / Kamienie milowe
-    notes = models.TextField(blank=True, null=True, verbose_name="Notatki / Kamienie milowe")
+    notes = models.TextField(
+        blank=True, null=True, verbose_name="Notatki / Kamienie milowe"
+    )
 
     class Meta:
-        ordering = ['-date', '-created_at']
+        ordering = ["-date", "-created_at"]
         verbose_name = "Pomiar"
         verbose_name_plural = "Pomiary"
         constraints = [
             models.CheckConstraint(
                 condition=(
-                        models.Q(dog__isnull=False, puppy__isnull=True) |
-                        models.Q(dog__isnull=True, puppy__isnull=False)
+                    models.Q(dog__isnull=False, puppy__isnull=True)
+                    | models.Q(dog__isnull=True, puppy__isnull=False)
                 ),
                 name="measurement_one_animal_source",
             )
@@ -666,9 +716,10 @@ class Measurement(models.Model):
         if selected_count == 0:
             raise ValidationError("Musisz wybrać psa LUB szczeniaka.")
         if selected_count > 1:
-            raise ValidationError("Pomiar może być przypisany tylko do jednego zwierzęcia naraz.")
+            raise ValidationError(
+                "Pomiar może być przypisany tylko do jednego zwierzęcia naraz."
+            )
 
     def __str__(self):
         animal = self.dog if self.dog else self.puppy
         return f"{animal} - {self.date.strftime('%d.%m.%Y')}"
-

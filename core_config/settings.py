@@ -56,7 +56,7 @@ MIDDLEWARE = [
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
-    'csp.middleware.CSPMiddleware',
+    "csp.middleware.CSPMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
@@ -71,7 +71,7 @@ ROOT_URLCONF = "core_config.urls"
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [BASE_DIR / 'templates'],
+        "DIRS": [BASE_DIR / "templates"],
         "APP_DIRS": True,
         "OPTIONS": {
             "context_processors": [
@@ -126,7 +126,7 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = "pl"
 
 LANGUAGES = [
-    ('pl', 'Polski'),
+    ("pl", "Polski"),
 ]
 
 TIME_ZONE = "Europe/Warsaw"
@@ -158,5 +158,5 @@ LOGIN_REDIRECT_URL = "dashboard/"
 LOGOUT_REDIRECT_URL = "home"
 LOGIN_URL = "login"
 
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / "media"
+MEDIA_URL = "/media/"

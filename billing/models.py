@@ -5,11 +5,13 @@ import uuid
 
 class SubscriptionPlan(models.Model):
     class Interval(models.TextChoices):
-        MONTHLY = 'monthly', 'Miesięczny'
-        YEARLY = 'yearly', 'Roczny'
+        MONTHLY = "monthly", "Miesięczny"
+        YEARLY = "yearly", "Roczny"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data dodania pakietu")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data dodania pakietu"
+    )
     updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji")
 
     name = models.CharField(max_length=60, verbose_name="Nazwa planu")
@@ -18,14 +20,21 @@ class SubscriptionPlan(models.Model):
         max_length=20,
         choices=Interval.choices,
         default=Interval.MONTHLY,
-        verbose_name="Okres rozliczeniowy"
+        verbose_name="Okres rozliczeniowy",
     )
-    max_litters_per_year = models.PositiveBigIntegerField(blank=True, null=True, verbose_name="Maksymalna liczba miotów rocznie")
-    max_breeding_dogs = models.PositiveBigIntegerField(blank=True, null=True, verbose_name="Maksymalna liczba aktywnych psów")
-    storage_gb = models.PositiveIntegerField(verbose_name="Pojemność dysku (GB)", blank=True, null=True)
+    max_litters_per_year = models.PositiveBigIntegerField(
+        blank=True, null=True, verbose_name="Maksymalna liczba miotów rocznie"
+    )
+    max_breeding_dogs = models.PositiveBigIntegerField(
+        blank=True, null=True, verbose_name="Maksymalna liczba aktywnych psów"
+    )
+    storage_gb = models.PositiveIntegerField(
+        verbose_name="Pojemność dysku (GB)", blank=True, null=True
+    )
     pit_access_monthly_threshold = models.PositiveSmallIntegerField(
-        blank=True, null=True,
-        verbose_name="Próg miesięcy dla dostępu do PiT (miesięczny)"
+        blank=True,
+        null=True,
+        verbose_name="Próg miesięcy dla dostępu do PiT (miesięczny)",
     )
     tier_weight = models.PositiveSmallIntegerField(
         default=0,
@@ -45,8 +54,12 @@ class Payment(models.Model):
         REFUNDED = "refunded", "Zwrócona"
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Data utworzenia rekordu")
-    updated_at = models.DateTimeField(auto_now=True, verbose_name="Data aktualizacji rekordu")
+    created_at = models.DateTimeField(
+        auto_now_add=True, verbose_name="Data utworzenia rekordu"
+    )
+    updated_at = models.DateTimeField(
+        auto_now=True, verbose_name="Data aktualizacji rekordu"
+    )
 
     breeder = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -69,7 +82,7 @@ class Payment(models.Model):
     status = models.CharField(
         max_length=20,
         default="pending",
-        choices=Status.choices, #type: ignore
+        choices=Status.choices,  # type: ignore
         verbose_name="Status płatności",
     )
 

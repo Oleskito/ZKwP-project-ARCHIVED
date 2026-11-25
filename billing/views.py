@@ -37,7 +37,9 @@ def create_checkout_session_view(request) -> HttpResponse:
         "mode": mode,
         "client_reference_id": str(request.user.id),
         "locale": "pl",
-        "metadata": {"price_id": price_id},  # KRYTYCZNE: Webhook potrzebuje tego w obu trybach!
+        "metadata": {
+            "price_id": price_id
+        },  # KRYTYCZNE: Webhook potrzebuje tego w obu trybach!
         "success_url": request.build_absolute_uri("/billing/success/"),
         "cancel_url": request.build_absolute_uri("/billing/cancel/"),
     }
@@ -54,14 +56,16 @@ def create_checkout_session_view(request) -> HttpResponse:
             plan_name, interval = plan_key
             plan = SubscriptionPlan.objects.get(name=plan_name, interval=interval)
 
-            session_kwargs["line_items"] = [{
-                "quantity": 1,
-                "price_data": {
-                    "currency": "pln",
-                    "unit_amount": int(plan.price * 100),
-                    "product_data": {"name": f"Plan {plan.name} – Doładowanie"},
-                },
-            }]
+            session_kwargs["line_items"] = [
+                {
+                    "quantity": 1,
+                    "price_data": {
+                        "currency": "pln",
+                        "unit_amount": int(plan.price * 100),
+                        "product_data": {"name": f"Plan {plan.name} – Doładowanie"},
+                    },
+                }
+            ]
             session_kwargs["invoice_creation"] = {"enabled": True}
         else:
             # Tryb subskrypcji (karta)
@@ -70,7 +74,9 @@ def create_checkout_session_view(request) -> HttpResponse:
         session = stripe.checkout.Session.create(**session_kwargs)
 
     except Exception:
-        logger.exception("Stripe checkout session creation failed for user %s", request.user.id)
+        logger.exception(
+            "Stripe checkout session creation failed for user %s", request.user.id
+        )
         messages.error(request, "Wystąpił błąd przy przetwarzaniu płatności.")
         return redirect("price_list")
 
@@ -94,7 +100,9 @@ def create_portal_session_view(request) -> HttpResponse:
         )
     except Exception:
         logger.exception("Stripe portal session creation failed for user %s", user.id)
-        messages.error(request, "Nie można otworzyć portalu zarządzania. Spróbuj ponownie.")
+        messages.error(
+            request, "Nie można otworzyć portalu zarządzania. Spróbuj ponownie."
+        )
         return redirect("your_profile")
     return redirect(portal.url, permanent=False)
 
@@ -134,6 +142,7 @@ def stripe_webhook_view(request) -> HttpResponse:
         except Exception as e:
             print(f"❌ KRYTYCZNY BŁĄD W KODZIE WEBHOOKA: {e}")
             import traceback
+
             traceback.print_exc()
     else:
         print("⏭️ Ignoruje ten typ zdarzenia (to nie jest zakończenie kasy).")
@@ -142,15 +151,9 @@ def stripe_webhook_view(request) -> HttpResponse:
 
 
 def _handle_checkout_completed(session):
-    from django.contrib.auth import get_user_model
-    from django.utils import timezone
-    from datetime import timedelta
-    from billing.models import Payment, SubscriptionPlan
-    from billing.stripe_utils import PRICE_ID_TO_PLAN
-    import stripe
-
-    user_id = getattr(session, 'client_reference_id', None)
-    if not user_id: return
+    user_id = getattr(session, "client_reference_id", None)
+    if not user_id:
+        return
 
     User = get_user_model()
     try:
@@ -159,8 +162,8 @@ def _handle_checkout_completed(session):
         return
 
     # KROK 1: Aktualizacja ID Stripe w bazie
-    customer_id = getattr(session, 'customer', None)
-    subscription_id = getattr(session, 'subscription', None)
+    customer_id = getattr(session, "customer", None)
+    subscription_id = getattr(session, "subscription", None)
     stripe_fields = []
     if not breeder.stripe_customer_id and customer_id:
         breeder.stripe_customer_id = customer_id
@@ -172,17 +175,20 @@ def _handle_checkout_completed(session):
         breeder.save(update_fields=stripe_fields)
 
     # KROK 2: Odczyt planu z webhooka
-    metadata = getattr(session, 'metadata', None)
-    price_id = getattr(metadata, 'price_id', "") if metadata else ""
-    if not price_id and hasattr(metadata, 'get'):
-        price_id = metadata.get('price_id', "")
+    metadata = getattr(session, "metadata", None)
+    price_id = getattr(metadata, "price_id", "") if metadata else ""
+    if not price_id and hasattr(metadata, "get"):
+        price_id = metadata.get("price_id", "")
 
     plan_key = PRICE_ID_TO_PLAN.get(price_id)
-    if not plan_key: return
+    if not plan_key:
+        return
 
     plan_name, interval = plan_key
     try:
-        plan = SubscriptionPlan.objects.get(name__iexact=plan_name, interval__iexact=interval)
+        plan = SubscriptionPlan.objects.get(
+            name__iexact=plan_name, interval__iexact=interval
+        )
     except SubscriptionPlan.DoesNotExist:
         return
 
@@ -195,12 +201,17 @@ def _handle_checkout_completed(session):
 
     # SPRAWDZAMY CZY UŻYTKOWNIK JEST NA DARMOWYM TRIALU
     # Jeśli nie ma żadnej opłaconej transakcji, to jego dni są "darmowe"
-    from billing.models import Payment
-    has_paid = Payment.objects.filter(breeder=breeder, status=Payment.Status.COMPLETED).exists()
+    has_paid = Payment.objects.filter(
+        breeder=breeder, status=Payment.Status.COMPLETED
+    ).exists()
 
     # DYNAMICZNY DZIELNIK CZASU (30 czy 365 dni)
-    old_days_in_cycle = 365 if (breeder.current_plan and breeder.current_plan.interval == 'yearly') else 30
-    new_days_in_cycle = 365 if plan.interval == 'yearly' else 30
+    old_days_in_cycle = (
+        365
+        if (breeder.current_plan and breeder.current_plan.interval == "yearly")
+        else 30
+    )
+    new_days_in_cycle = 365 if plan.interval == "yearly" else 30
 
     # WARTOŚĆ STAREGO PLANU (0 zł, jeśli to darmowy Trial!)
     if has_paid:
@@ -233,31 +244,33 @@ def _handle_checkout_completed(session):
     breeder.save()
 
     # KROK 5: Kredyt Stripe (tylko manualne wpłaty BLIK/P24 przed odnowieniem karty)
-    amount_total = getattr(session, 'amount_total', 0)
+    amount_total = getattr(session, "amount_total", 0)
     amount_pln = amount_total / 100.0 if amount_total else 0.0
-    mode = getattr(session, 'mode', '')
+    mode = getattr(session, "mode", "")
 
-    if mode == 'payment' and breeder.stripe_customer_id and amount_total > 0:
+    if mode == "payment" and breeder.stripe_customer_id and amount_total > 0:
         try:
             stripe.Customer.create_balance_transaction(
                 breeder.stripe_customer_id,
-                amount=-int(amount_total),  # UWAGA: Minus w Stripe dodaje środki na rzecz klienta!
-                currency="pln"
+                amount=-int(
+                    amount_total
+                ),  # UWAGA: Minus w Stripe dodaje środki na rzecz klienta!
+                currency="pln",
             )
         except Exception as e:
             print(f"⚠️ Błąd kredytu Stripe: {e}")
 
     # KROK 6: Zapis historii wpłat
-    invoice_id = getattr(session, 'invoice', None)
+    invoice_id = getattr(session, "invoice", None)
     invoice_url = ""
     if invoice_id:
         try:
             inv = stripe.Invoice.retrieve(invoice_id)
-            invoice_url = getattr(inv, 'hosted_invoice_url', "")
+            invoice_url = getattr(inv, "hosted_invoice_url", "")
         except Exception:
             pass
 
-    session_id = getattr(session, 'id', "")
+    session_id = getattr(session, "id", "")
     try:
         Payment.objects.create(
             breeder=breeder,
